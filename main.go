@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"net/http"
 	"os"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -21,7 +22,6 @@ func init() {
 	password := os.Getenv("DB_PASSWORD")
 	dbName := os.Getenv("DB_NAME")
 	connection := fmt.Sprintf("%s:%s@unix(/var/run/mysqld/mysqld.sock)/%s", user, password, dbName)
-	fmt.Println(connection)
 	db, err = sql.Open("mysql", connection)
 	if err != nil {
 		log.Fatalln(err)
@@ -34,4 +34,6 @@ func init() {
 
 func main() {
 	log.Println("Success init")
+	http.Handle("/", http.FileServer(http.Dir("public")))
+	http.ListenAndServe(":8080", nil)
 }
