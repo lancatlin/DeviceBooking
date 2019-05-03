@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>登入系統</title>
+  </head>
+  <body>
+    <header>{{template "header" .}}</header>
+    <div>
+      <p id="error">{{.Error}}</p>
+      <form action="/login" method="post">
+        帳號： <input type="text" name="email" id=""><br>
+        密碼： <input type="password" name="password"><br>
+        <input type="submit" value="登入">
+      </form>
+    </div>
+  </body>
+</html>

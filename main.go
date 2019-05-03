@@ -16,8 +16,11 @@ var db *sql.DB
 var tpl *template.Template
 
 func init() {
-	tpl = template.Must(template.ParseGlob("templates/*.html"))
 	var err error
+	tpl, err = template.ParseGlob("templates/*.html")
+	if err != nil {
+		log.Fatalln(err)
+	}
 	user := os.Getenv("DB_USER")
 	password := os.Getenv("DB_PASSWORD")
 	dbName := os.Getenv("DB_NAME")
@@ -36,5 +39,6 @@ func main() {
 	log.Println("Success init")
 	http.Handle("/", http.FileServer(http.Dir("public")))
 	http.HandleFunc("/booking", booking)
+	http.HandleFunc("/login", login)
 	http.ListenAndServe(":8080", nil)
 }

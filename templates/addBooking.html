@@ -22,14 +22,11 @@
             <th>四</th>
             <th>五</th>
           </tr>
-          $days := .Days
-          {{range .Classes}}
-          $class := .
+          {{range $i, $class := .Classes}}
           <tr>
-            <td><p>早修</p><p>7:30</p></td>
-            {{range $days}}
-            $day := .
-            <td><input type="checkbox" name="$day-$class"></td>
+            <td><p></p><p>7:30</p></td>
+            {{range $j, $day := .Days}}
+            <td><input type="checkbox" name="$j:$i"></td>
             {{end}}
           </tr>
           {{end}}
