@@ -3,28 +3,16 @@
 <body>
 {{define "header"}}
 <header>
-  <style>
-  header {
-    background-color:dimgrey;
-    margin: 10px;
-    height: 50px;
-    padding: 10px;
-  }
-  header a {
-    color:lightyellow;
-    background-color:darkslategray;
-  }
-  </style>
+  <link rel="stylesheet" type="text/css" href="../public/header.css">
   <div class="top-bar">
-    <a href="/">首頁</a>
-    <a href="/booking">預約</a>
-    <a href="/check">查看預約</a>
-    <a href="/manage">管理預約</a>
-    {{if .}}
-    <a href="/lending">借出</a>
-    <a href="/return">還入</a>
-    <a href="/overdue">逾期項目</a>
-    {{end}}
+    <a href="#">首頁</a>
+    <a href="#">預約</a>
+    <a href="#">查看預約</a>
+    <a href="#">管理預約</a>
+    <a href="#">借出</a>
+    <a href="#">還入</a>
+    <a href="#">逾期項目</a>
+    <p>姓名</p>
   </div>
 </header>
 {{end}}

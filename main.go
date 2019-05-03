@@ -35,5 +35,6 @@ func init() {
 func main() {
 	log.Println("Success init")
 	http.Handle("/", http.FileServer(http.Dir("public")))
+	http.HandleFunc("/booking", booking)
 	http.ListenAndServe(":8080", nil)
 }

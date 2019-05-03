@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>新增預約</title>
+  </head>
+  <body>
+    <div>
+      {{template "header"}}
+      <h1>新增預約</h1>
+      <form action="#" method="POST">
+        <p>iPad 學生機：<input type="text" name="student"></p>
+        <p>iPad 教師機：<input type="text" name="teacher"></p>
+        <p>Chromebook：<input type="text" name="chromebook"></p>
+        <p>Wifi 基地台：<input type="text" name="wap"></p>
+        <p>無線投影機：<input type="text" name="wireless-projector"></p>
+        <table>
+          <tr>
+            <th>  </th>
+            <th>一</th>
+            <th>二</th>
+            <th>三</th>
+            <th>四</th>
+            <th>五</th>
+          </tr>
+          $days := .Days
+          {{range .Classes}}
+          $class := .
+          <tr>
+            <td><p>早修</p><p>7:30</p></td>
+            {{range $days}}
+            $day := .
+            <td><input type="checkbox" name="$day-$class"></td>
+            {{end}}
+          </tr>
+          {{end}}
+        </table>
+      </form>
+    </div>
+  </body>
+</html>

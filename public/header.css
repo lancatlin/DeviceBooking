@@ -1,0 +1,26 @@
+header {
+  text-align:left;
+}
+.top-bar {
+  overflow:hidden;
+  background-color:#6c7e9aff;
+  height: 45px;
+}
+.top-bar a {
+  float:left;
+  display: block;
+  padding: 10px 16px;
+  text-decoration: none;
+  text-align: center;
+  color:white;
+}
+.top-bar a:hover {
+  background-color: #ddd;
+  color: black;
+}
+.top-bar p {
+  color: white;
+  text-align: right;
+  margin: 10px;
+
+}
