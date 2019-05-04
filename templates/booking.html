@@ -2,6 +2,7 @@
 <html>
   <head>
     <title>新增預約</title>
+    <link rel="stylesheet" href="/static/booking.css">
   </head>
   <body>
     <div>
@@ -13,20 +14,20 @@
         <p>Chromebook：<input type="text" name="chromebook"></p>
         <p>Wifi 基地台：<input type="text" name="wap"></p>
         <p>無線投影機：<input type="text" name="wireless-projector"></p>
-        <table>
+        <table align="center">
           <tr>
             <th>  </th>
-            <th>一</th>
-            <th>二</th>
-            <th>三</th>
-            <th>四</th>
-            <th>五</th>
+            {{range .Days}}
+            <th>{{.}}</th>
+            {{end}}
           </tr>
+          {{$days := .Days}}
+          {{$times := .Times}}
           {{range $i, $class := .Classes}}
           <tr>
-            <td><p></p><p>7:30</p></td>
-            {{range $j, $day := .Days}}
-            <td><input type="checkbox" name="$j:$i"></td>
+            <td><p>{{$class}}</p><p>{{index $times $i}}</p></td>
+            {{range $j, $day := $days}}
+            <td><input type="checkbox" name="{{$j}}:{{$i}}"></td>
             {{end}}
           </tr>
           {{end}}

@@ -1,0 +1,21 @@
+div {
+  text-align: center;
+}
+
+table {
+  width: 50%;
+}
+
+th,td {
+  text-align: center;
+  width: 12.5%;
+}
+
+th {
+  height: 20px;
+}
+
+table, th, td {
+  border: 1px solid black;
+}
+
