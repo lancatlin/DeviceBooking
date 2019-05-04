@@ -70,8 +70,8 @@ func initUsers(filename string) {
 			log.Fatal("Password generate error: ", err)
 		}
 		_, err = db.Exec(`
-		INSERT INTO Users (Name, Email, Type, Password)
-		VALUES (?, ?, 'Teacher', ?);
+		INSERT INTO Users (Name, Email, Password)
+		VALUES (?, ?, ?);
 		`, user.Name, user.Email, password)
 		if err != nil {
 			log.Fatalln("Insert fatal: ", err)

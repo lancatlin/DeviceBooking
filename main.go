@@ -40,13 +40,20 @@ func main() {
 	filename := flag.String("init-users", "", "The json file of user's data to init database.")
 	isDeviced := flag.Bool("init-deviced", false, "Whether should program init the devices data")
 	flag.Parse()
-	initUsers(*filename)
+	if *filename != "" {
+		initUsers(*filename)
+	}
 	if *isDeviced {
 		initDevices()
 	}
-	log.Println("Success init")
-	http.Handle("/", http.FileServer(http.Dir("public")))
+	log.Println("Server runs on http://localhost:8080")
+	http.HandleFunc("/", index)
+	fs := http.FileServer(http.Dir("./static"))
+	http.Handle("/static/", http.StripPrefix("/static/", fs))
 	http.HandleFunc("/booking", booking)
 	http.HandleFunc("/login", login)
-	http.ListenAndServe(":8080", nil)
+	http.HandleFunc("/logout", logout)
+	if err := http.ListenAndServe(":8080", nil); err != nil {
+		log.Fatal(err)
+	}
 }

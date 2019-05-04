@@ -34,19 +34,19 @@ func getUser(w http.ResponseWriter, r *http.Request) User {
 
 func updateSession(uuid string) {
 	result, err := db.Exec(`
-	UPDATE Sessions S
-	SET LastUsed = TIMESTAMP()
-	WHERE ID = ?;
+	UPDATE Sessions 
+	SET LastUsed = CURRENT_TIMESTAMP()
+	WHERE ID = ? ;
 	`, uuid)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Update session error: ", err)
 	}
 	rows, err := result.RowsAffected()
 	if err != nil {
 		log.Fatal(err)
 	}
 	if rows != 1 {
-		log.Fatalln("Update session fatal affect not one row: ", rows)
+		log.Println("Update session fatal affect not one row: ", rows, uuid)
 	}
 }
 
@@ -61,15 +61,15 @@ func login(w http.ResponseWriter, r *http.Request) {
 		Error string
 	}
 	page := loginPage{nilUser(), ""}
-	if r.Method != "POST" {
+	if r.Method != http.MethodPost {
 		err := tpl.ExecuteTemplate(w, "login.html", page)
 		if err != nil {
 			log.Fatal(err)
 		}
 		return
 	}
-	uname := r.FormValue("uname")
-	password := r.FormValue("psw")
+	uname := r.FormValue("email")
+	password := r.FormValue("password")
 	q := `
 	SELECT ID, Password
 	FROM Users
@@ -80,12 +80,12 @@ func login(w http.ResponseWriter, r *http.Request) {
 	var hashPassword []byte
 	err := row.Scan(&id, &hashPassword)
 	if err == sql.ErrNoRows {
-		page.Error = "Fatal: Email or password is uncorrect"
+		page.Error = "Fatal: Email not found"
 		tpl.ExecuteTemplate(w, "login.html", page)
 		return
 	}
 	if bcrypt.CompareHashAndPassword(hashPassword, []byte(password)) != nil {
-		page.Error = "Fatal: Email or password is uncorrect"
+		page.Error = "Fatal: Email or Password is uncorrect"
 		tpl.ExecuteTemplate(w, "login.html", page)
 		return
 	}
