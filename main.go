@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"flag"
 	"fmt"
 	"html/template"
 	"log"
@@ -36,6 +37,13 @@ func init() {
 }
 
 func main() {
+	filename := flag.String("init-users", "", "The json file of user's data to init database.")
+	isDeviced := flag.Bool("init-deviced", false, "Whether should program init the devices data")
+	flag.Parse()
+	initUsers(*filename)
+	if *isDeviced {
+		initDevices()
+	}
 	log.Println("Success init")
 	http.Handle("/", http.FileServer(http.Dir("public")))
 	http.HandleFunc("/booking", booking)

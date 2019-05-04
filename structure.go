@@ -1,5 +1,6 @@
 package main
 
+// User is the struct for template executing
 type User struct {
 	ID       int
 	Username string
