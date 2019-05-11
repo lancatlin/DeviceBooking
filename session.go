@@ -33,20 +33,13 @@ func getUser(w http.ResponseWriter, r *http.Request) User {
 }
 
 func updateSession(uuid string) {
-	result, err := db.Exec(`
+	_, err := db.Exec(`
 	UPDATE Sessions 
 	SET LastUsed = CURRENT_TIMESTAMP()
 	WHERE ID = ? ;
 	`, uuid)
 	if err != nil {
 		log.Fatal("Update session error: ", err)
-	}
-	rows, err := result.RowsAffected()
-	if err != nil {
-		log.Fatal(err)
-	}
-	if rows != 1 {
-		log.Println("Update session fatal affect not one row: ", rows, uuid)
 	}
 }
 

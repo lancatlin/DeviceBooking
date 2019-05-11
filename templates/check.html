@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>查看預約</title>
+    <link rel="stylesheet" href="/static/booking.css">
+  </head>
+  <body>
+    <div>
+      {{template "header" .}}
+      <table align="center">
+        <tr>
+          <th>  </th>
+          {{range .Dates}}
+          <th>{{.}}</th>
+          {{end}}
+        </tr>
+        {{$days := .Dates}}
+        {{$times := .Times}}
+        {{$iPads := .IPads}}
+        {{$chromebooks := .Chromebooks}}
+        {{range $i, $class := .Classes}}
+        <tr>
+          <td><p>{{$class}}</p><p>{{index $times $i}}</p></td>
+          {{range $j, $day := $days}}
+          <td>
+            <p class="iPad">{{index $iPads $i $j}}</p>
+            <p class="Chromebook">{{index $chromebooks $i $j}}</p>
+          </td>
+          {{end}}
+        </tr>
+        {{end}}
+      </table>
+    </div>
+  </body>
+</html>

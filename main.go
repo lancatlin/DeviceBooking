@@ -46,13 +46,16 @@ func main() {
 	if *isDeviced {
 		initDevices()
 	}
+	initCheck()
 	log.Println("Server runs on http://localhost:8080")
 	http.HandleFunc("/", index)
+	http.Handle("/favicon.ico", http.NotFoundHandler())
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 	http.HandleFunc("/booking", newBooking)
 	http.HandleFunc("/login", login)
 	http.HandleFunc("/logout", logout)
+	http.HandleFunc("/check", checkPage)
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatal(err)
 	}
