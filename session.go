@@ -89,7 +89,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 		tpl.ExecuteTemplate(w, "login.html", page)
 		return
 	}
-	sessionUUID := uuid.NewV4()
+	sessionUUID, err := uuid.NewV4()
 	session := sessionUUID.String()
 	if err != nil {
 		log.Fatalln("uuid init fatal: ", err)

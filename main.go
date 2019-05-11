@@ -50,7 +50,7 @@ func main() {
 	http.HandleFunc("/", index)
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
-	http.HandleFunc("/booking", booking)
+	http.HandleFunc("/booking", newBooking)
 	http.HandleFunc("/login", login)
 	http.HandleFunc("/logout", logout)
 	if err := http.ListenAndServe(":8080", nil); err != nil {

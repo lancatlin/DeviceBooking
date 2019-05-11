@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>完成預約</title>
+    <link rel="stylesheet" href="/static/style.css">
+  </head>
+  <body>
+    {{template "header" .}}
+    <main>
+      <p>借用人：{{.Username}}</p>
+      <p>借用日：{{.Date}} {{.Weekday}} {{.Class}}
+      <div>
+        <p>iPad 學生機：{{.Student}}</p>
+        <p>iPad 教師機：{{.Teacher}}</p>
+        <p>Chromebook：{{.Chromebook}}</p>
+        <p>無線基地台：{{.WAP}}</p>
+        <p>無線投影機：{{.Projector}}</p>
+      </div>
+      <a href="/booking">再一筆</a>
+    </main>
+  </body>
+</html>
