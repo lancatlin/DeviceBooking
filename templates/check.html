@@ -23,8 +23,8 @@
           <td><p>{{$class}}</p><p>{{index $times $i}}</p></td>
           {{range $j, $day := $days}}
           <td>
-            <p class="iPad">{{index $iPads $i $j}}</p>
-            <p class="Chromebook">{{index $chromebooks $i $j}}</p>
+            <p class="iPad">iPad: {{index $iPads $j $i}}</p>
+            <p class="Chromebook">Chrome: {{index $chromebooks $j $i}}</p>
           </td>
           {{end}}
         </tr>

@@ -45,7 +45,12 @@ func newBooking(w http.ResponseWriter, r *http.Request) {
 		class, err := strconv.Atoi(r.FormValue("class"))
 		errCheck(err, "")
 		if class < 0 || class > 10 {
-			log.Fatalln("error class time: ", class)
+			bookingForm(w, r, "請輸入正確的課堂")
+			return
+		}
+		if !b.enough(check(date, class)) {
+			bookingForm(w, r, "數量不夠")
+			return
 		}
 		b.From = date + " " + classBegin[class] + ":00"
 		b.Until = date + " " + classEnd[class] + ":00"
@@ -62,23 +67,29 @@ func newBooking(w http.ResponseWriter, r *http.Request) {
 		}{user, *b, date, className[class], d.Weekday().String()}
 		checkErr(tpl.ExecuteTemplate(w, "examination.html", page), "Execute examination fatal: ")
 	} else {
-		type bookingPage struct {
-			User
-			Classes [11]string
-			Min     string
-			Max     string
-		}
-		var page bookingPage
-		page.User = getUser(w, r)
-		now := time.Now()
-		max := now.AddDate(0, 1, 0)
-		page.Min = now.Format("2006-01-02")
-		page.Max = max.Format("2006-01-02")
-		page.Classes = className
-		err := tpl.ExecuteTemplate(w, "booking.html", page)
-		if err != nil {
-			log.Fatal("Template execute fatal: ", err)
-		}
+		bookingForm(w, r, "")
+	}
+}
+
+func bookingForm(w http.ResponseWriter, r *http.Request, msg string) {
+	type bookingPage struct {
+		User
+		Classes [11]string
+		Min     string
+		Max     string
+		Msg     string
+	}
+	var page bookingPage
+	page.User = getUser(w, r)
+	page.Msg = msg
+	now := time.Now()
+	max := now.AddDate(0, 1, 0)
+	page.Min = now.Format("2006-01-02")
+	page.Max = max.Format("2006-01-02")
+	page.Classes = className
+	err := tpl.ExecuteTemplate(w, "booking.html", page)
+	if err != nil {
+		log.Fatal("Template execute fatal: ", err)
 	}
 }
 
@@ -92,11 +103,6 @@ func (b *booking) insertBooking(user User) {
 	checkErr(err, "Get last insert ID fatal: ")
 }
 
-/*
-func checkFree(from, until string, student, teacher, chromebook, wap, projector int) {
-	row := db.QueryRow(`
-	DECLARE
-	`)
-	row
+func (b *booking) enough(r [5]int) bool {
+	return r[student] >= b.Student && r[teacher] >= b.Teacher && r[chromebook] >= b.Chromebook && r[wap] >= b.WAP && r[projector] >= b.Projector
 }
-*/

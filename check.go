@@ -1,23 +1,46 @@
 package main
 
 import (
-	"log"
+	"database/sql"
 	"net/http"
 	"strconv"
 	"time"
 )
 
-var iPadCount, chromebookCount int
+const (
+	student = iota
+	teacher
+	chromebook
+	wap
+	projector
+)
+
+var count = [5]int{}
+var checkStmt *sql.Stmt
 
 func initCheck() {
-	row := db.QueryRow(`
-	SELECT COUNT(1) FROM Devices WHERE Type = 'Student-iPad';
+	var s, t, c, w, p int
+	stmt, err := db.Prepare(`
+	SELECT COUNT(1) FROM Devices WHERE Type = ?;
 	`)
-	checkErr(row.Scan(&iPadCount), "Query count of student iPads")
-	row = db.QueryRow(`
-	SELECT COUNT(1) FROM Devices WHERE Type = 'Chromebook';
-	`)
-	checkErr(row.Scan(&chromebookCount), "Query count of student chromebooks")
+	checkErr(err, "Statement prepare fatal: ")
+	row := stmt.QueryRow("Student-iPad")
+	checkErr(row.Scan(&s), "Query count of student iPads")
+	row = stmt.QueryRow("Teacher-iPad")
+	checkErr(row.Scan(&t), "Query count of student Teacher iPads")
+	row = stmt.QueryRow("Chromebook")
+	checkErr(row.Scan(&c), "Query count of student chromebooks")
+	row = stmt.QueryRow("WAP")
+	checkErr(row.Scan(&w), "Query count of student WAPs")
+	row = stmt.QueryRow("WirelessProjector")
+	checkErr(row.Scan(&t), "Query count of student Projectors")
+	count[student] = s
+	count[teacher] = t
+	count[chromebook] = c
+	count[wap] = w
+	count[projector] = p
+	checkStmt, err = db.Prepare(`SELECT SUM(Student), SUM(Teacher), SUM(Chromebook), SUM(WAP), SUM(Projector) FROM Bookings WHERE ReturnTime > ? AND LendingTime < ?;`)
+	checkErr(err, "Prepare checking Stmt fatal: ")
 }
 
 func checkPage(w http.ResponseWriter, r *http.Request) {
@@ -31,42 +54,48 @@ func checkPage(w http.ResponseWriter, r *http.Request) {
 		Dates       [6]string
 		Classes     [11]string
 		Times       [11]string
-		IPads       [11][6]int
-		Chromebooks [11][6]int
+		IPads       [6][11]int
+		Chromebooks [6][11]int
 	}{}
 	p, err := strconv.Atoi(r.FormValue("p"))
 	if err != nil {
 		p = 0
 	}
-	page.Dates, page.IPads, page.Chromebooks = check(p)
+	page.Dates, page.IPads, page.Chromebooks = checkWeek(p)
 	page.Classes = className
 	page.Times = classBegin
 	page.User = user
 	checkErr(tpl.ExecuteTemplate(w, "check.html", page), "Execute Fatal: ")
 }
 
-func check(p int) (dates [6]string, iPads, chromebooks [11][6]int) {
+func checkWeek(p int) (dates [6]string, iPads, chromebooks [6][11]int) {
 	now := time.Now()
 	begin := now.AddDate(0, 0, -1*int(now.Weekday())+7*p+1)
-	stmt, err := db.Prepare(`SELECT SUM(Student), SUM(Chromebook) FROM Bookings WHERE ReturnTime > ? AND LendingTime < ?;`)
-	checkErr(err, "Prepare statement fatal: ")
 	for d := 0; d < 6; d++ {
 		dates[d] = begin.AddDate(0, 0, d).Format("01-02")
 		date := begin.AddDate(0, 0, d).Format("2006-01-02")
 		for c := 0; c < 11; c++ {
-			from, end := date+" "+classBegin[c]+":00", date+" "+classEnd[c]+":00"
-			log.Println(from, end)
-			var iPad, chrome int
-			row := stmt.QueryRow(from, end)
-			err := row.Scan(&iPad, &chrome)
-			if err != nil {
-				iPad, chrome = 0, 0
-			}
-			log.Println(iPad, chrome)
-			iPads[c][d] = iPadCount - int(iPad)
-			chromebooks[c][d] = chromebookCount - chrome
+			result := check(date, c)
+			iPads[d][c] = result[student]
+			chromebooks[d][c] = result[chromebook]
 		}
 	}
-	log.Println(iPads, chromebooks)
+	return
+}
+
+func check(date string, class int) (result [5]int) {
+	result = [5]int{}
+	from, end := date+" "+classBegin[class]+":00", date+" "+classEnd[class]+":00"
+	var s, t, c, w, p int
+	row := checkStmt.QueryRow(from, end)
+	err := row.Scan(&s, &t, &c, &w, &p)
+	if err != nil {
+		s, t, c, w, p = 0, 0, 0, 0, 0
+	}
+	result[student] = count[student] - s
+	result[teacher] = count[teacher] - t
+	result[chromebook] = count[chromebook] - c
+	result[wap] = count[wap] - w
+	result[projector] = count[projector] - p
 	return
 }

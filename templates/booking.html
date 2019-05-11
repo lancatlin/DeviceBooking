@@ -9,6 +9,7 @@
     {{template "header" .}}
     <main>
       <div>
+        <h3>{{.Msg}}</h3>
         <form action="/booking" method="POST">
           <p>iPad 學生機：<input type="number" name="student"></p>
           <p>iPad 教師機：<input type="number" name="teacher"></p>
