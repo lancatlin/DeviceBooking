@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -12,14 +13,10 @@ var classEnd = [...]string{"8:10", "9:05", "10:10", "10:55", "11:50", "13:00", "
 var className = [...]string{"早修", "C1", "C2", "C3", "C4", "午休", "C5", "C6", "C7", "C8", "C9"}
 
 type booking struct {
-	ID         int64
-	Student    int
-	Teacher    int
-	Chromebook int
-	WAP        int
-	Projector  int
-	From       string
-	Until      string
+	ID      int64
+	Devices [5]int
+	From    string
+	Until   string
 }
 
 func errCheck(err error, msg string) {
@@ -36,20 +33,20 @@ func newBooking(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		b := &booking{}
 		var err error
-		b.Student, _ = strconv.Atoi(r.FormValue("student"))
-		b.Teacher, _ = strconv.Atoi(r.FormValue("teacher"))
-		b.Chromebook, _ = strconv.Atoi(r.FormValue("chromebook"))
-		b.WAP, _ = strconv.Atoi(r.FormValue("wap"))
-		b.Projector, _ = strconv.Atoi(r.FormValue("wireless-projector"))
+		b.Devices[student], _ = strconv.Atoi(r.FormValue("student"))
+		b.Devices[teacher], _ = strconv.Atoi(r.FormValue("teacher"))
+		b.Devices[chromebook], _ = strconv.Atoi(r.FormValue("chromebook"))
+		b.Devices[wap], _ = strconv.Atoi(r.FormValue("wap"))
+		b.Devices[projector], _ = strconv.Atoi(r.FormValue("wireless-projector"))
 		date := r.FormValue("date")
 		class, err := strconv.Atoi(r.FormValue("class"))
 		errCheck(err, "")
 		if class < 0 || class > 10 {
-			bookingForm(w, r, "請輸入正確的課堂")
+			bookingForm(w, r, []string{"請輸入正確的課堂"})
 			return
 		}
-		if !b.enough(check(date, class)) {
-			bookingForm(w, r, "數量不夠")
+		if msg := b.enough(check(date, class)); len(msg) != 0 {
+			bookingForm(w, r, msg)
 			return
 		}
 		b.From = date + " " + classBegin[class] + ":00"
@@ -61,23 +58,24 @@ func newBooking(w http.ResponseWriter, r *http.Request) {
 		page := struct {
 			User
 			booking
-			Date    string
-			Class   string
-			Weekday string
-		}{user, *b, date, className[class], d.Weekday().String()}
+			Date      string
+			Class     string
+			Weekday   string
+			ItemsName [5]string
+		}{user, *b, date, className[class], d.Weekday().String(), itemsName}
 		checkErr(tpl.ExecuteTemplate(w, "examination.html", page), "Execute examination fatal: ")
 	} else {
-		bookingForm(w, r, "")
+		bookingForm(w, r, nil)
 	}
 }
 
-func bookingForm(w http.ResponseWriter, r *http.Request, msg string) {
+func bookingForm(w http.ResponseWriter, r *http.Request, msg []string) {
 	type bookingPage struct {
 		User
 		Classes [11]string
 		Min     string
 		Max     string
-		Msg     string
+		Msg     []string
 	}
 	var page bookingPage
 	page.User = getUser(w, r)
@@ -97,12 +95,18 @@ func (b *booking) insertBooking(user User) {
 	result, err := db.Exec(`
 	INSERT INTO Bookings (User, LendingTime, ReturnTime, Student, Teacher, Chromebook, WAP, Projector)
 	VALUES (?, ?, ?, ?, ?, ?, ?, ?);
-	`, user.ID, b.From, b.Until, b.Student, b.Teacher, b.Chromebook, b.WAP, b.Projector)
+	`, user.ID, b.From, b.Until, b.Devices[student], b.Devices[teacher], b.Devices[chromebook], b.Devices[wap], b.Devices[projector])
 	checkErr(err, "Insert booking value fatal: ")
 	b.ID, err = result.LastInsertId()
 	checkErr(err, "Get last insert ID fatal: ")
 }
 
-func (b *booking) enough(r [5]int) bool {
-	return r[student] >= b.Student && r[teacher] >= b.Teacher && r[chromebook] >= b.Chromebook && r[wap] >= b.WAP && r[projector] >= b.Projector
+func (b *booking) enough(r [5]int) []string {
+	msg := []string{}
+	for i := 0; i < len(itemsName); i++ {
+		if r[i] < b.Devices[i] {
+			msg = append(msg, fmt.Sprintf("%s 只剩 %d 台", itemsName[i], r[i]))
+		}
+	}
+	return msg
 }

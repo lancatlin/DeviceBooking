@@ -15,6 +15,8 @@ const (
 	projector
 )
 
+var itemsName = [5]string{"學生機", "教師機", "Chromebook", "無線基地台", "無線投影機"}
+
 var count = [5]int{}
 var checkStmt *sql.Stmt
 
