@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -19,21 +20,28 @@ func initCheck() {
 	SELECT COUNT(1) FROM Devices WHERE Type = ?;
 	`)
 	checkErr(err, "Statement prepare fatal: ")
+
 	row := stmt.QueryRow("Student-iPad")
 	checkErr(row.Scan(&s), "Query count of student iPads")
+
 	row = stmt.QueryRow("Teacher-iPad")
 	checkErr(row.Scan(&t), "Query count of student Teacher iPads")
+
 	row = stmt.QueryRow("Chromebook")
 	checkErr(row.Scan(&c), "Query count of student chromebooks")
+
 	row = stmt.QueryRow("WAP")
 	checkErr(row.Scan(&w), "Query count of student WAPs")
+
 	row = stmt.QueryRow("WirelessProjector")
-	checkErr(row.Scan(&t), "Query count of student Projectors")
+	checkErr(row.Scan(&p), "Query count of student Projectors")
+
 	count[student] = s
 	count[teacher] = t
 	count[chromebook] = c
 	count[wap] = w
 	count[projector] = p
+	log.Println("count[teacher]: ", count[teacher], t)
 	checkStmt, err = db.Prepare(`SELECT SUM(Student), SUM(Teacher), SUM(Chromebook), SUM(WAP), SUM(Projector) FROM Bookings WHERE ReturnTime > ? AND LendingTime < ?;`)
 	checkErr(err, "Prepare checking Stmt fatal: ")
 }
