@@ -7,13 +7,15 @@
   <div class="top-bar">
     <div class="button-div">
       <a href="/">首頁</a>
+      {{if .Login}}
       <a href="/booking">預約</a>
       <a href="/check">查看預約</a>
-      {{if .Login}}
-      <a href="/manage">管理預約</a>
-      <a href="/lend">借出</a>
-      <a href="/return">還入</a>
-      <a href="/overdue">逾期項目</a>
+        {{if eq .Type "Admin"}}
+        <a href="/manage">管理預約</a>
+        <a href="/lend">借出</a>
+        <a href="/return">還入</a>
+        <a href="/overdue">逾期項目</a>
+        {{end}}
       {{end}}
     </div>
     <div class="right-div">

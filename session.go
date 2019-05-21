@@ -10,6 +10,7 @@ import (
 )
 
 func getUser(w http.ResponseWriter, r *http.Request) User {
+	// get user's data from cookie, if none retrun nil user
 	cookie, err := r.Cookie("session")
 	if err == http.ErrNoCookie {
 		return nilUser()

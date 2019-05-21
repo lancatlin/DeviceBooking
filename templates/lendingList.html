@@ -1,0 +1,42 @@
+<html>
+  <head>
+    <title>借出設備</title>
+  </head>
+  <body>
+    {{template "header" .}}
+    <div>
+			<h2>{{.Date}} {{.Day}}</h2>
+      <table>
+        <tr>
+					<th>時間</th>
+					<th>教師</th>
+					<th>學生機</th>
+					<th>教師機</th>
+					<th>Chromebook</th>
+					<th>無線基地台</th>
+					<th>無線投影機</th>
+					<th></th>
+				</tr>
+				{{range .Classes}}
+					<tr>
+						<td>{{.Class}}</td>
+						<td></td>
+						{{range .Devices}}
+							<td>{{.}}</td>
+						{{end}}
+					</tr>
+					{{range .Bookings}}
+					<tr>
+						<td></td>
+						<td>{{.User}}</td>
+						{{range .Devices}}
+							<td>{{.}}</td>
+						{{end}}
+						<td><a href="/booking/{{.ID}}">查看</a></td>
+					</tr>
+					{{end}}
+				{{end}}
+      </table>
+    </div>
+  </body>
+</html>

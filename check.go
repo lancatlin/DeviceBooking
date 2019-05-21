@@ -7,20 +7,13 @@ import (
 	"time"
 )
 
-const (
-	student = iota
-	teacher
-	chromebook
-	wap
-	projector
-)
-
-var itemsName = [5]string{"學生機", "教師機", "Chromebook", "無線基地台", "無線投影機"}
-
 var count = [5]int{}
 var checkStmt *sql.Stmt
 
 func initCheck() {
+	/*
+		Init total devices number
+	*/
 	var s, t, c, w, p int
 	stmt, err := db.Prepare(`
 	SELECT COUNT(1) FROM Devices WHERE Type = ?;
@@ -46,6 +39,11 @@ func initCheck() {
 }
 
 func checkPage(w http.ResponseWriter, r *http.Request) {
+	/*
+		Handle /check
+		Return remaining devices of each lesson.
+		Choose week by "page"
+	*/
 	user := getUser(w, r)
 	if !user.Login {
 		http.Redirect(w, r, "/login", 303)
@@ -86,6 +84,9 @@ func checkWeek(p int) (dates [6]string, iPads, chromebooks [6][11]int) {
 }
 
 func check(date string, class int) (result [5]int) {
+	/*
+		Check how many remaining devices in a lesson
+	*/
 	result = [5]int{}
 	from, end := date+" "+classBegin[class]+":00", date+" "+classEnd[class]+":00"
 	var s, t, c, w, p int

@@ -1,5 +1,18 @@
 package main
 
+const (
+	student = iota
+	teacher
+	chromebook
+	wap
+	projector
+)
+
+var itemsName = [5]string{"學生機", "教師機", "Chromebook", "無線基地台", "無線投影機"}
+var classBegin = [...]string{"7:30", "8:20", "9:15", "10:10", "11:05", "12:30", "13:05", "14:00", "14:55", "15:55", "16:45"}
+var classEnd = [...]string{"8:10", "9:05", "10:10", "10:55", "11:50", "13:00", "13:50", "14:45", "15:40", "16:40", "17:30"}
+var className = [...]string{"早修", "C1", "C2", "C3", "C4", "午休", "C5", "C6", "C7", "C8", "C9"}
+
 // User is the struct for template executing
 type User struct {
 	ID       int

@@ -8,10 +8,7 @@ import (
 	"time"
 )
 
-var classBegin = [...]string{"7:30", "8:20", "9:15", "10:10", "11:05", "12:30", "13:05", "14:00", "14:55", "15:55", "16:45"}
-var classEnd = [...]string{"8:10", "9:05", "10:10", "10:55", "11:50", "13:00", "13:50", "14:45", "15:40", "16:40", "17:30"}
-var className = [...]string{"早修", "C1", "C2", "C3", "C4", "午休", "C5", "C6", "C7", "C8", "C9"}
-
+// 紀錄預約資料
 type booking struct {
 	ID      int64
 	Devices [5]int
@@ -19,13 +16,8 @@ type booking struct {
 	Until   string
 }
 
-func errCheck(err error, msg string) {
-	if err != nil {
-		log.Fatal(msg, err)
-	}
-}
-
 func newBooking(w http.ResponseWriter, r *http.Request) {
+	// Handle /booking
 	user := getUser(w, r)
 	if !user.Login {
 		http.Redirect(w, r, "/login", 303)
@@ -40,7 +32,7 @@ func newBooking(w http.ResponseWriter, r *http.Request) {
 		b.Devices[projector], _ = strconv.Atoi(r.FormValue("wireless-projector"))
 		date := r.FormValue("date")
 		class, err := strconv.Atoi(r.FormValue("class"))
-		errCheck(err, "")
+		checkErr(err, "")
 		if class < 0 || class > 10 {
 			bookingForm(w, r, []string{"請輸入正確的課堂"})
 			return
@@ -70,6 +62,7 @@ func newBooking(w http.ResponseWriter, r *http.Request) {
 }
 
 func bookingForm(w http.ResponseWriter, r *http.Request, msg []string) {
+	// Render booking form and error messages
 	type bookingPage struct {
 		User
 		Classes [11]string
@@ -92,6 +85,7 @@ func bookingForm(w http.ResponseWriter, r *http.Request, msg []string) {
 }
 
 func (b *booking) insertBooking(user User) {
+	// insert booking data into database
 	result, err := db.Exec(`
 	INSERT INTO Bookings (User, LendingTime, ReturnTime, Student, Teacher, Chromebook, WAP, Projector)
 	VALUES (?, ?, ?, ?, ?, ?, ?, ?);
@@ -102,6 +96,10 @@ func (b *booking) insertBooking(user User) {
 }
 
 func (b *booking) enough(r [5]int) []string {
+	/*
+		Check whether devices are enough for this booking.
+		Return slice of error messages. len == 0 if all pass.
+	*/
 	msg := []string{}
 	for i := 0; i < len(itemsName); i++ {
 		if r[i] < b.Devices[i] {
