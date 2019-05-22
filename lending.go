@@ -12,8 +12,8 @@ func datetime(t time.Time) string {
 
 func bookingList(w http.ResponseWriter, r *http.Request) {
 	user := getUser(w, r)
-	if !user.Login || user.Type != "Admin" {
-		// Permission denied
+	if !user.Login {
+		permissionDenied(w, r)
 		return
 	}
 	type displayBooking struct {
@@ -61,7 +61,7 @@ func bookingList(w http.ResponseWriter, r *http.Request) {
 		}
 		page.Classes = append(page.Classes, thisClass)
 	}
-	checkErr(tpl.ExecuteTemplate(w, "lendingList.html", page), "Template execute fatal: ")
+	checkErr(tpl.ExecuteTemplate(w, "bookingList.html", page), "Template execute fatal: ")
 }
 
 func getDateClass() (date string, day string, class int) {

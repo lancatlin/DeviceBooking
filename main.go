@@ -52,11 +52,10 @@ func main() {
 	http.Handle("/favicon.ico", http.NotFoundHandler())
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
-	http.HandleFunc("/booking", newBooking)
+	http.Handle("/booking/", http.StripPrefix("/booking/", http.HandlerFunc(getBooking)))
 	http.HandleFunc("/login", login)
 	http.HandleFunc("/logout", logout)
 	http.HandleFunc("/check", checkPage)
-	http.HandleFunc("/lend", bookingList)
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatal(err)
 	}

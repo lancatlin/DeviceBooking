@@ -1,35 +1,24 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>預約</title>
     <link rel="stylesheet" href="/static/style.css">
-    <link rel="stylesheet" href="/static/booking.css">
+    <title>第 {{.ID}} 預約資料</title>
   </head>
   <body>
     {{template "header" .}}
     <main>
       <div>
-        {{if ne (len .Msg) 0}}
-          {{range .Msg}}
-            <h3>{{.}}</h3>
+        <p>預約人： {{.UName}}</p>
+        <p>從 {{.From}} 到 {{.Until}}</p>
+        <table>
+          {{$devices := .Devices}}
+          {{range $i, $v := .ItemsName}}
+          <tr>
+            <td>{{.}}</td>
+            <td>{{index $devices $i}}</td>
+          </tr>
           {{end}}
-        {{end}}
-        <form action="/booking" method="POST">
-          <p>iPad 學生機：<input type="number" name="student"></p>
-          <p>iPad 教師機：<input type="number" name="teacher"></p>
-          <p>Chromebook：<input type="number" name="chromebook"></p>
-          <p>Wifi 基地台：<input type="number" name="wap"></p>
-          <p>無線投影機：<input type="number" name="wireless-projector"></p>
-          <div id="dates-div">
-            <input type="date" name="date" id="" min="{{.Min}}" max="{{.Max}}">
-            <select name="class" id="">
-              {{range $i, $v := .Classes}}
-              <option value="{{$i}}">{{$v}}</option>
-              {{end}}
-            </select>
-          </div>
-          <input type="submit" value="完成">
-        </form>
+        </table>
       </div>
     </main>
   </body>

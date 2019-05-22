@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
@@ -20,7 +21,8 @@ func newBooking(w http.ResponseWriter, r *http.Request) {
 	// Handle /booking
 	user := getUser(w, r)
 	if !user.Login {
-		http.Redirect(w, r, "/login", 303)
+		permissionDenied(w, r)
+		return
 	}
 	if r.Method == "POST" {
 		b := &booking{}
@@ -43,7 +45,6 @@ func newBooking(w http.ResponseWriter, r *http.Request) {
 		}
 		b.From = date + " " + classBegin[class] + ":00"
 		b.Until = date + " " + classEnd[class] + ":00"
-		log.Println(b)
 		b.insertBooking(user)
 		d, err := time.Parse("2006-01-02", date)
 		checkErr(err, "Parse time fatal: ")
@@ -78,7 +79,7 @@ func bookingForm(w http.ResponseWriter, r *http.Request, msg []string) {
 	page.Min = now.Format("2006-01-02")
 	page.Max = max.Format("2006-01-02")
 	page.Classes = className
-	err := tpl.ExecuteTemplate(w, "booking.html", page)
+	err := tpl.ExecuteTemplate(w, "newBooking.html", page)
 	if err != nil {
 		log.Fatal("Template execute fatal: ", err)
 	}
@@ -107,4 +108,62 @@ func (b *booking) enough(r [5]int) []string {
 		}
 	}
 	return msg
+}
+
+func getBooking(w http.ResponseWriter, r *http.Request) {
+	/*
+		Handle booking data
+		Transfer request to "/booking/new" and "/booking/list"
+	*/
+	// 是否要檢查登入？
+	switch url := r.URL.Path; url {
+	case "list":
+		bookingList(w, r)
+	case "new":
+		newBooking(w, r)
+	default:
+		user := getUser(w, r)
+		if !user.Login {
+			permissionDenied(w, r)
+			return
+		}
+		id, err := strconv.Atoi(url)
+		if err != nil {
+			notFound(w, r)
+			return
+		}
+		log.Println("id: ", id)
+		row := db.QueryRow(`
+		SELECT U.Name, LendingTime, ReturnTime, Student, Teacher, Chromebook, WAP, Projector
+		FROM Bookings B, Users U
+		WHERE B.ID = ? and U.ID = B.User;
+		`, id)
+		page := struct {
+			User
+			ID        int
+			UName     string
+			From      string
+			Until     string
+			Devices   [5]int
+			ItemsName [5]string
+		}{}
+		page.User = user
+		var s, t, c, wa, p int
+		if err := row.Scan(&page.UName, &page.From, &page.Until, &s, &t, &c, &wa, &p); err == sql.ErrNoRows {
+			// 404 no this booking
+			notFound(w, r)
+			return
+		} else if err != nil {
+			log.Fatalln("Query booking error: ", err)
+			return
+		}
+		page.ID = id
+		page.Devices[student] = s
+		page.Devices[teacher] = t
+		page.Devices[chromebook] = c
+		page.Devices[wap] = wa
+		page.Devices[projector] = p
+		page.ItemsName = itemsName
+		checkErr(tpl.ExecuteTemplate(w, "booking.html", page), "Execute booking data page fatal: ")
+	}
 }
