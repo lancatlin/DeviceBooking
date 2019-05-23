@@ -1,49 +1,27 @@
 package main
 
 import (
-	"database/sql"
-	"log"
 	"net/http"
 	"strconv"
 	"time"
 )
 
 var count = [5]int{}
-var checkStmt *sql.Stmt
 
 func initCheck() {
 	/*
 		Init total devices number
 	*/
-	var s, t, c, w, p int
 	stmt, err := db.Prepare(`
 	SELECT COUNT(1) FROM Devices WHERE Type = ?;
 	`)
-	checkErr(err, "Statement prepare fatal: ")
-
-	row := stmt.QueryRow("Student-iPad")
-	checkErr(row.Scan(&s), "Query count of student iPads")
-
-	row = stmt.QueryRow("Teacher-iPad")
-	checkErr(row.Scan(&t), "Query count of student Teacher iPads")
-
-	row = stmt.QueryRow("Chromebook")
-	checkErr(row.Scan(&c), "Query count of student chromebooks")
-
-	row = stmt.QueryRow("WAP")
-	checkErr(row.Scan(&w), "Query count of student WAPs")
-
-	row = stmt.QueryRow("WirelessProjector")
-	checkErr(row.Scan(&p), "Query count of student Projectors")
-
-	count[student] = s
-	count[teacher] = t
-	count[chromebook] = c
-	count[wap] = w
-	count[projector] = p
-	log.Println("count[teacher]: ", count[teacher], t)
-	checkStmt, err = db.Prepare(`SELECT SUM(Student), SUM(Teacher), SUM(Chromebook), SUM(WAP), SUM(Projector) FROM Bookings WHERE ReturnTime > ? AND LendingTime < ?;`)
-	checkErr(err, "Prepare checking Stmt fatal: ")
+	checkErr(err, "func initCheck: prepare statment fatal: ")
+	for i, v := range itemsType {
+		row := stmt.QueryRow(v)
+		var value int
+		checkErr(row.Scan(&value), "total "+v+" query fatal: ")
+		count[i] = value
+	}
 }
 
 func checkPage(w http.ResponseWriter, r *http.Request) {
@@ -97,16 +75,19 @@ func check(date string, class int) (result [5]int) {
 	*/
 	result = [5]int{}
 	from, end := date+" "+classBegin[class]+":00", date+" "+classEnd[class]+":00"
-	var s, t, c, w, p int
-	row := checkStmt.QueryRow(from, end)
-	err := row.Scan(&s, &t, &c, &w, &p)
-	if err != nil {
-		s, t, c, w, p = 0, 0, 0, 0, 0
+	stmt, err := db.Prepare(`
+	SELECT SUM(Amount)
+	FROM Bookings B, BookingDevices BD
+	WHERE ReturnTime > ? AND LendingTime < ? and BID = ID and Type = ?;
+	`)
+	checkErr(err, "prepare check statment fatal: ")
+	for i, v := range itemsType {
+		row := stmt.QueryRow(from, end, v)
+		var value int
+		if err := row.Scan(&value); err != nil {
+			value = 0
+		}
+		result[i] = count[i] - value
 	}
-	result[student] = count[student] - s
-	result[teacher] = count[teacher] - t
-	result[chromebook] = count[chromebook] - c
-	result[wap] = count[wap] - w
-	result[projector] = count[projector] - p
 	return
 }

@@ -19,3 +19,19 @@ func permissionDenied(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(403)
 	checkErr(tpl.ExecuteTemplate(w, "permissionDenied.html", user), "Render permission denied error: ")
 }
+
+func bookingHandler(w http.ResponseWriter, r *http.Request) {
+	/*
+		Handle booking data
+		Transfer request to "/booking/new" and "/booking/list"
+	*/
+	// 是否要檢查登入？
+	switch url := r.URL.Path; url {
+	case "list":
+		bookingList(w, r)
+	case "new":
+		newBooking(w, r)
+	default:
+		bookingPage(w, r)
+	}
+}

@@ -18,12 +18,15 @@ CREATE TABLE IF NOT EXISTS Bookings (
   User INT NOT NULL,
   LendingTime DATETIME NOT NULL,
   ReturnTime DATETIME NOT NULL,
-  Teacher INT DEFAULT 0,
-  Student INT DEFAULT 0,
-  Chromebook INT DEFAULT 0,
-  WAP INT DEFAULT 0,
-  Projector INT DEFAULT 0,
   FOREIGN KEY (User) REFERENCES Users (ID)
+);
+
+CREATE TABLE IF NOT EXISTS BookingDevices (
+  BID INT,
+  Type ENUM('Student-iPad', 'Teacher-iPad', 'Chromebook', 'WAP', 'WirelessProjector'),
+  Amount INT DEFAULT 0,
+  FOREIGN KEY (BID) REFERENCES Bookings (ID),
+  PRIMARY KEY (BID, Type)
 );
 
 CREATE TABLE IF NOT EXISTS Records (

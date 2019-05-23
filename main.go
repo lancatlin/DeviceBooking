@@ -25,7 +25,7 @@ func init() {
 	user := os.Getenv("DB_USER")
 	password := os.Getenv("DB_PASSWORD")
 	dbName := os.Getenv("DB_NAME")
-	connection := fmt.Sprintf("%s:%s@unix(/var/run/mysqld/mysqld.sock)/%s", user, password, dbName)
+	connection := fmt.Sprintf("%s:%s@unix(/var/run/mysqld/mysqld.sock)/%s?parseTime=true", user, password, dbName)
 	db, err = sql.Open("mysql", connection)
 	if err != nil {
 		log.Fatalln(err)
@@ -52,7 +52,7 @@ func main() {
 	http.Handle("/favicon.ico", http.NotFoundHandler())
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
-	http.Handle("/booking/", http.StripPrefix("/booking/", http.HandlerFunc(getBooking)))
+	http.Handle("/booking/", http.StripPrefix("/booking/", http.HandlerFunc(bookingHandler)))
 	http.HandleFunc("/login", login)
 	http.HandleFunc("/logout", logout)
 	http.HandleFunc("/check", checkPage)
