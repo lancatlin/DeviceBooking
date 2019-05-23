@@ -8,14 +8,14 @@
     <div class="button-div">
       <a href="/">首頁</a>
       {{if .Login}}
-      <a href="/booking/new">預約</a>
+      <a href="/bookings/new">預約</a>
       <a href="/check">查看剩餘</a>
-        {{if eq .Type "Admin"}}
-        <a href="/booking/list">查看預約</a>
-        <a href="/lend">借出</a>
-        <a href="/return">還入</a>
-        <a href="/overdue">逾期項目</a>
-        {{end}}
+      <a href="/bookings">查看預約</a>
+      {{if eq .Type "Admin"}}
+      <a href="/lend">借出</a>
+      <a href="/return">還入</a>
+      <a href="/overdue">逾期項目</a>
+      {{end}}
       {{end}}
     </div>
     <div class="right-div">

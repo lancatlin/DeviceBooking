@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/gorilla/mux"
 )
 
 func bookingList(w http.ResponseWriter, r *http.Request) {
@@ -70,11 +72,7 @@ func bookingPage(w http.ResponseWriter, r *http.Request) {
 		permissionDenied(w, r)
 		return
 	}
-	id, err := strconv.Atoi(r.URL.Path)
-	if err != nil {
-		notFound(w, r)
-		return
-	}
+	id, _ := strconv.Atoi(mux.Vars(r)["id"])
 	log.Println("id: ", id)
 	row := db.QueryRow(`
 		SELECT U.Name, LendingTime, ReturnTime
@@ -118,20 +116,21 @@ func ableLendout(b Booking) bool {
 	*/
 	/*
 		rows := db.QueryRow(`
-		SELECT
-		`)
+			SELECT ID
+			FROM Bookings
+			WHERE ReturnDate
+			`)
 	*/
 	return false
 }
 
 func alreadyLendout(b Booking) bool {
 	stmt, err := db.Prepare(`
-	SELECT COUNT(1), B.Student, B.Teacher, B.Chromebook, B.WAP, B.Projector
+	SELECT COUNT(1)
 	FROM Records R, Devices D
 	WHERE R.Booking = ? and D.ID = R.Device and D.Type = ?;
 	`)
 	checkErr(err, "Prepare count booking record fatal: ")
-	itemsType := [5]string{"Student-iPad", "Teacher-iPad", "Chromebook", "WAP", "WirelessProjector"}
 	for i, t := range itemsType {
 		row := stmt.QueryRow(b.ID, t)
 		var count int
@@ -145,7 +144,6 @@ func alreadyLendout(b Booking) bool {
 		}
 	}
 	return true
-
 }
 
 func getBookingDevices(id int) (devices [5]int) {

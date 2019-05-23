@@ -9,12 +9,7 @@
     {{template "header" .}}
     <main>
       <div>
-        {{if ne (len .Msg) 0}}
-          {{range .Msg}}
-            <h3>{{.}}</h3>
-          {{end}}
-        {{end}}
-        <form action="/booking/new" method="POST">
+        <form action="/bookings" method="POST">
           <p>iPad 學生機：<input type="number" name="student"></p>
           <p>iPad 教師機：<input type="number" name="teacher"></p>
           <p>Chromebook：<input type="number" name="chromebook"></p>

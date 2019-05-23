@@ -5,10 +5,11 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
-// 紀錄預約資料
+// Booking 紀錄預約資料
 type Booking struct {
 	ID      int64
 	Devices [5]int
@@ -18,63 +19,72 @@ type Booking struct {
 }
 
 func newBooking(w http.ResponseWriter, r *http.Request) {
-	// Handle /booking
+	/*
+		Handle /bookings
+		Receive post from /bookings/new form
+	*/
 	user := getUser(w, r)
 	if !user.Login {
 		permissionDenied(w, r)
 		return
 	}
-	if r.Method == "POST" {
-		b := Booking{}
-		var err error
-		b.Devices[student], _ = strconv.Atoi(r.FormValue("student"))
-		b.Devices[teacher], _ = strconv.Atoi(r.FormValue("teacher"))
-		b.Devices[chromebook], _ = strconv.Atoi(r.FormValue("chromebook"))
-		b.Devices[wap], _ = strconv.Atoi(r.FormValue("wap"))
-		b.Devices[projector], _ = strconv.Atoi(r.FormValue("wireless-projector"))
-		date := r.FormValue("date")
-		class, err := strconv.Atoi(r.FormValue("class"))
-		checkErr(err, "")
-		if class < 0 || class > 10 {
-			bookingForm(w, r, []string{"請輸入正確的課堂"})
-			return
-		}
-		if msg := b.enough(check(date, class)); len(msg) != 0 {
-			bookingForm(w, r, msg)
-			return
-		}
-		b.From = parseSQLTime(date + " " + classBegin[class] + ":00")
-		b.Until = parseSQLTime(date + " " + classEnd[class] + ":00")
-		b.insertBooking(user)
-		log.Println("b.ID: ", b.ID)
-		checkErr(err, "Parse time fatal: ")
+	b := Booking{}
+	var err error
+	b.Devices[student], _ = strconv.Atoi(r.FormValue("student"))
+	b.Devices[teacher], _ = strconv.Atoi(r.FormValue("teacher"))
+	b.Devices[chromebook], _ = strconv.Atoi(r.FormValue("chromebook"))
+	b.Devices[wap], _ = strconv.Atoi(r.FormValue("wap"))
+	b.Devices[projector], _ = strconv.Atoi(r.FormValue("wireless-projector"))
+	date := r.FormValue("date")
+	class, err := strconv.Atoi(r.FormValue("class"))
+	checkErr(err, "")
+	if class < 0 || class > 10 {
 		page := struct {
 			User
-			Booking
-			Date      string
-			Class     string
-			Weekday   string
-			ItemsName [5]string
-		}{user, b, date, className[class], b.From.Weekday().String(), itemsName}
-		log.Println("page.ID", page.Booking.ID)
-		checkErr(tpl.ExecuteTemplate(w, "examination.html", page), "Execute examination fatal: ")
-	} else {
-		bookingForm(w, r, nil)
+			Title   string
+			Content string
+			Target  string
+		}{user, "請輸入有效的課堂", "請輸入有效的課堂", `<a href="/bookings/new">回到預約頁面</a>`}
+		checkErr(tpl.ExecuteTemplate(w, "msg.html", page), "func newBooking: render fatal: ")
+		return
 	}
+	if msg := b.enough(check(date, class)); len(msg) != 0 {
+		page := struct {
+			User
+			Title   string
+			Content string
+			Target  string
+		}{user, "數量不足", strings.Join(msg, "<br>"), `<a href="/bookings/new">回到預約頁面</a>`}
+		checkErr(tpl.ExecuteTemplate(w, "msg.html", page), "func newBooking: render fatal: ")
+		return
+	}
+	b.From = parseSQLTime(date + " " + classBegin[class] + ":00")
+	b.Until = parseSQLTime(date + " " + classEnd[class] + ":00")
+	b.insertBooking(user)
+	log.Println("b.ID: ", b.ID)
+	checkErr(err, "Parse time fatal: ")
+	page := struct {
+		User
+		Booking
+		Date      string
+		Class     string
+		Weekday   string
+		ItemsName [5]string
+	}{user, b, date, className[class], b.From.Weekday().String(), itemsName}
+	log.Println("page.ID", page.Booking.ID)
+	checkErr(tpl.ExecuteTemplate(w, "examination.html", page), "Execute examination fatal: ")
 }
 
-func bookingForm(w http.ResponseWriter, r *http.Request, msg []string) {
+func bookingForm(w http.ResponseWriter, r *http.Request) {
 	// Render booking form and error messages
 	type bookingPage struct {
 		User
 		Classes [11]string
 		Min     string
 		Max     string
-		Msg     []string
 	}
 	var page bookingPage
 	page.User = getUser(w, r)
-	page.Msg = msg
 	now := time.Now()
 	max := now.AddDate(0, 1, 0)
 	page.Min = now.Format("2006-01-02")

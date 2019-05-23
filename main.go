@@ -4,10 +4,12 @@ import (
 	"database/sql"
 	"flag"
 	"fmt"
-	"html/template"
 	"log"
 	"net/http"
 	"os"
+	"text/template"
+
+	"github.com/gorilla/mux"
 
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/joho/godotenv/autoload"
@@ -48,15 +50,16 @@ func main() {
 	}
 	initCheck()
 	log.Println("Server runs on http://localhost:8080")
-	http.HandleFunc("/", index)
-	http.Handle("/favicon.ico", http.NotFoundHandler())
-	fs := http.FileServer(http.Dir("./static"))
-	http.Handle("/static/", http.StripPrefix("/static/", fs))
-	http.Handle("/booking/", http.StripPrefix("/booking/", http.HandlerFunc(bookingHandler)))
-	http.HandleFunc("/login", login)
-	http.HandleFunc("/logout", logout)
-	http.HandleFunc("/check", checkPage)
-	if err := http.ListenAndServe(":8080", nil); err != nil {
-		log.Fatal(err)
-	}
+	r := mux.NewRouter()
+	r.HandleFunc("/", index)
+	r.Handle("/favicon.ico", http.NotFoundHandler())
+	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
+	r.HandleFunc("/bookings/new", bookingForm)
+	r.HandleFunc("/bookings", bookingList).Methods("GET")
+	r.HandleFunc("/bookings", newBooking).Methods("POST")
+	r.HandleFunc("/bookings/{id:[0-9]+}", bookingPage)
+	r.HandleFunc("/login", login)
+	r.HandleFunc("/logout", logout)
+	r.HandleFunc("/check", checkPage)
+	checkErr(http.ListenAndServe(":8080", r), "Start server fatal: ")
 }
