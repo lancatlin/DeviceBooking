@@ -44,3 +44,9 @@ func parseSQLTime(s string) time.Time {
 	checkErr(err, "Parse time fatal: ")
 	return t
 }
+
+func parseClass(date, class string) time.Time {
+	t, err := time.ParseInLocation("2006-01-02 15:04:05", date+" "+class+":00", time.Local)
+	checkErr(err, "Parse class fatal: ")
+	return t
+}
