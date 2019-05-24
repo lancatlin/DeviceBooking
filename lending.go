@@ -17,9 +17,8 @@ func bookingList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	type displayBooking struct {
-		ID      int64
-		User    string
-		Devices [5]int
+		Booking
+		Status string
 	}
 	type classBooking struct {
 		Class    string
@@ -34,7 +33,7 @@ func bookingList(w http.ResponseWriter, r *http.Request) {
 		Classes []classBooking
 	}{user, date, day, []classBooking{}}
 	stmt, err := db.Prepare(`
-	SELECT B.ID, U.Name
+	SELECT B.ID, U.Name, B.LendingTime, B.ReturnTime
 	FROM Bookings B, Users U
 	WHERE ReturnTime > ? and LendingTime < ? and U.ID = B.User
 	`)
@@ -46,9 +45,10 @@ func bookingList(w http.ResponseWriter, r *http.Request) {
 		defer rows.Close()
 		for rows.Next() {
 			b := displayBooking{}
-			err := rows.Scan(&b.ID, &b.User)
+			err := rows.Scan(&b.ID, &b.UName, &b.From, &b.Until)
 			checkErr(err, "row scan fatal: ")
 			b.Devices = getBookingDevices(b.ID)
+			b.Status = b.getStatus()
 			thisClass.Bookings = append(thisClass.Bookings, b)
 			for i := range itemsName {
 				thisClass.Devices[i] += b.Devices[i]
@@ -118,7 +118,7 @@ func (b *Booking) getStatus() string {
 	} else if b.Until.Before(time.Now()) {
 		return "預約過期"
 	} else {
-		return "尚不可借出，請先借出更早的預約"
+		return "尚不可借出"
 	}
 }
 

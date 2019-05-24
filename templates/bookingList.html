@@ -15,6 +15,8 @@
             <th>Chromebook</th>
             <th>無線基地台</th>
             <th>無線投影機</th>
+            <th>連結</th>
+            <th>狀態</th>
             <th></th>
             </tr>
             {{range .Classes}}
@@ -28,11 +30,15 @@
                 {{range .Bookings}}
                 <tr>
                     <td></td>
-                    <td>{{.User}}</td>
+                    <td>{{.UName}}</td>
                         {{range .Devices}}
                             <td>{{.}}</td>
                         {{end}}
                     <td><a href="/bookings/{{.ID}}">查看</a></td>
+                    <td>{{.Status}}</td>
+                    {{if eq .Status "可借出"}}
+                    <td><a href="/bookings/{{.ID}}/lend">借出</a></td>
+                    {{end}}
                 </tr>
                 {{end}}
             {{end}}
