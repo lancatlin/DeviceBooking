@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
@@ -151,5 +152,22 @@ func getBookingDevices(id int64) (devices [5]int) {
 		}
 		devices[i] = amount
 	}
+	return
+}
+
+func getBooking(id int64) (b Booking) {
+	b = Booking{}
+	row := db.QueryRow(`
+		SELECT U.Name, LendingTime, ReturnTime
+		FROM Bookings B, Users U
+		WHERE B.ID = ? and U.ID = B.User;
+	`, id)
+	if err := row.Scan(&b.UName, &b.From, &b.Until); err == sql.ErrNoRows {
+		return
+	} else if err != nil {
+		log.Fatalln(err)
+	}
+	b.ID = id
+	b.Devices = getBookingDevices(id)
 	return
 }

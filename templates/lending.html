@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>借出設備</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="/static/scripts/lending.js"></script>
+  </head>
+  <body>
+    {{template "header" .}}
+    <main>
+      <p id="bid">{{.Booking.ID}}</p>
+      <p>借用人：{{.UName}}</p>
+      <table>
+        <tr>
+          <th>項目</th>
+          {{range .ItemsName}}
+          <th>{{.}}</th>
+          {{end}}
+        </tr>
+        <tr>
+          <td>總共</td>
+          {{range .Devices}}
+          <td>{{.}}</td>
+          {{end}}
+        </tr>
+        <tr>
+          <td>已借出</td>
+          {{range .ItemsType}}
+          <td id="{{.}}">0</td>
+          {{end}}
+        </tr>
+      </table>
+      <p id="alert"></p>
+      <p>請輸入設備</p><input type="text" id="input-entry" name="id">
+      <button onclick="newRecord()">確認</button>
+      <div id="devices-list"></div>
+    </main>
+  </body>
+</html>

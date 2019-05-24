@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -105,114 +106,82 @@ func bookingPage(w http.ResponseWriter, r *http.Request) {
 	page.Devices = getBookingDevices(page.Booking.ID)
 	page.Status = page.getStatus()
 	page.AbleLending = page.Status == "可借出"
+	log.Println(page.Booking, time.Now())
 	checkErr(tpl.ExecuteTemplate(w, "booking.html", page), "Execute booking data page fatal: ")
 }
 
-func (b *Booking) getStatus() string {
-	if b.alreadyReturned() {
-		return "已歸還"
-	} else if b.alreadyLendout() {
-		return "已借出"
-	} else if b.ableLendout() {
-		return "可借出"
-	} else if b.Until.Before(time.Now()) {
-		return "預約過期"
+func newRecord(w http.ResponseWriter, r *http.Request) {
+	log.Println("Receive new record")
+	var bID int64
+	if i, err := strconv.Atoi(r.FormValue("bid")); err != nil {
+		w.WriteHeader(404)
+		return
 	} else {
-		return "尚不可借出"
+		bID = int64(i)
 	}
-}
-
-func (b *Booking) ableLendout() bool {
-	/*
-		Return this booking is able to lendout or not
-		Check whether every booking before it after now are already lended
-	*/
-	if b.Until.Before(time.Now()) {
-		// 已經到了歸還時間，不須借
-		return false
+	dID := r.FormValue("device")
+	log.Println("bID: ", bID, "\tdID: ", dID)
+	// 檢查設備是否已借出
+	row := db.QueryRow(`
+		SELECT COUNT(1)
+		FROM Records R, Devices D
+		WHERE R.Device = D.ID and D.ID = ? and LentUntil IS NULL;
+	`, dID)
+	var v int
+	if err := row.Scan(&v); v != 0 {
+		// 已被借出
+		log.Println(v, err)
+		w.WriteHeader(403)
+		return
+	} else if err != nil {
+		log.Fatalln(err)
 	}
-	if b.alreadyLendout() {
-		// 已經全部借出，不需借
-		return false
+	var dType string
+	row = db.QueryRow(`
+	SELECT Type FROM Devices WHERE ID = ?;
+	`, dID)
+	if err := row.Scan(&dType); err == sql.ErrNoRows {
+		w.WriteHeader(404)
+		return
+	} else if err != nil {
+		log.Fatalln(err)
 	}
-	// 檢查在此事件之前的所有預約是否已經借出，如果否，則不能借出。
-	rows, err := db.Query(`
-			SELECT ID
-			FROM Bookings
-			WHERE ReturnTime > ? and ReturnTime < ?;
-			`, time.Now(), b.Until)
-	checkErr(err, "func ableLendout: Query fatal: ")
-	for rows.Next() {
-		var id int64
-		checkErr(rows.Scan(&id), "func ableLendout: scan fatal: ")
-		booking := Booking{
-			ID:      id,
-			Devices: getBookingDevices(id),
-		}
-		if !booking.alreadyLendout() {
-			return false
-		}
-	}
-	return true
-}
-
-func (b *Booking) alreadyLendout() bool {
-	/*
-		Return whether booking is all lending out
-	*/
-	stmt, err := db.Prepare(`
+	// 檢查預約是否已滿
+	b := getBooking(bID)
+	log.Println(b)
+	row = db.QueryRow(`
 	SELECT COUNT(1)
 	FROM Records R, Devices D
-	WHERE R.Booking = ? and D.ID = R.Device and D.Type = ?;
-	`)
-	checkErr(err, "Prepare count booking record fatal: ")
-	for i, t := range itemsType {
-		row := stmt.QueryRow(b.ID, t)
-		var count int
-		if err := row.Scan(&count); err == sql.ErrNoRows {
-			return false
-		} else if err != nil {
-			log.Fatalln(err)
-		}
-		if count < b.Devices[i] {
-			return false
-		}
-	}
-	return true
-}
-
-func (b *Booking) alreadyReturned() bool {
-	if !b.alreadyLendout() {
-		return false
-	}
-	var result bool
-	row := db.QueryRow(`
-		SELECT Done
-		FROM Bookings
-		WHERE ID = ?;
-	`, b.ID)
-	checkErr(row.Scan(&result), "func alreadyReturned: Scan fatal: ")
-	if result {
-		return true
-	}
-	var v int
-	row = db.QueryRow(`
-		SELECT COUNT(1)
-		FROM Records
-		WHERE Booking = ? and LentUntil is NULL;
-	`, b.ID)
-
-	if err := row.Scan(&v); err == sql.ErrNoRows {
-		go func(b *Booking) {
-			db.Exec(`
-				UPDATE Bookings
-				SET Done = true
-				WHERE ID = ?;
-			`, b.ID)
-		}(b)
-		return true
+	WHERE Booking = ? and R.Device = D.ID and Type = ?;
+	`, b.ID, dType)
+	var amount int
+	if err := row.Scan(&amount); err == sql.ErrNoRows {
+		amount = 0
 	} else if err != nil {
-		log.Fatalln("func alreadyReturned: scan error: ", err)
+		log.Fatalln(err)
 	}
-	return false
+	i := typeToIndex[dType]
+	log.Println("type: ", itemsType[i])
+	if amount == b.Devices[i] {
+		w.WriteHeader(403)
+		return
+	} else if amount > b.Devices[i] {
+		log.Fatalln("Amount more than booking !", amount, b.Devices[i])
+	}
+	// 借出設備
+	result, err := db.Exec(`
+	INSERT INTO Records
+	VALUES (?, ?, ?, NULL);
+	`, b.ID, dID, time.Now())
+	checkErr(err, "Insert fatal: ")
+	rID, err := result.LastInsertId()
+	checkErr(err, "")
+	_, err = fmt.Fprintf(w, `
+	{
+		"type": "%s",
+		"amount": %d,
+		"done": %t,
+		"recordID": "%d"
+	}`, dType, amount+1, amount+1 == b.Devices[i], rID)
+	checkErr(err, "")
 }
