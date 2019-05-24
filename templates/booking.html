@@ -2,7 +2,7 @@
 <html>
   <head>
     <link rel="stylesheet" href="/static/style.css">
-    <title>第 {{.ID}} 預約資料</title>
+    <title>第 {{.Booking.ID}} 預約資料</title>
   </head>
   <body>
     {{template "header" .}}
@@ -10,6 +10,7 @@
       <div>
         <p>預約人： {{.UName}}</p>
         <p>從 {{.From}} 到 {{.Until}}</p>
+        <p>狀態：{{.Status}}</p>
         <table>
           {{$devices := .Devices}}
           {{range $i, $v := .ItemsName}}
@@ -17,6 +18,9 @@
             <td>{{.}}</td>
             <td>{{index $devices $i}}</td>
           </tr>
+          {{end}}
+          {{if and .AbleLending (eq .Type "Admin")}}
+          <a href="/bookings/{{.Booking.ID}}/lend">借出</a>
           {{end}}
         </table>
       </div>

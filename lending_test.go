@@ -15,7 +15,7 @@ func TestAlreadyLendOut(t *testing.T) {
 		ID: 1,
 	}
 	b.insertBooking(user)
-	if alreadyLendout(b) {
+	if b.alreadyLended() {
 		t.Error("Wrong result: should get false but get true")
 	}
 }

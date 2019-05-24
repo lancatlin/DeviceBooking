@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS Bookings (
   User INT NOT NULL,
   LendingTime DATETIME NOT NULL,
   ReturnTime DATETIME NOT NULL,
+  Done BOOL DEFAULT false,
   FOREIGN KEY (User) REFERENCES Users (ID)
 );
 

@@ -19,6 +19,7 @@ var db *sql.DB
 var tpl *template.Template
 
 func init() {
+	log.SetFlags(log.Lshortfile)
 	var err error
 	tpl, err = template.ParseGlob("templates/*.html")
 	if err != nil {

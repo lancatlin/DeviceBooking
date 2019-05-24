@@ -132,3 +132,24 @@ func (b *Booking) enough(r [5]int) []string {
 	}
 	return msg
 }
+
+func getBookingDevices(id int64) (devices [5]int) {
+	rows, err := db.Query(`
+	SELECT Type, Amount
+	FROM BookingDevices
+	WHERE BID = ?
+	ORDER BY Type;
+	`, id)
+	checkErr(err, "Query booking devices fatal: ")
+	i := 0
+	for rows.Next() {
+		var t string
+		var amount int
+		checkErr(rows.Scan(&t, &amount), "getBookingDevices Scan rows fatal: ")
+		for itemsType[i] != t && i < 5 {
+			i++
+		}
+		devices[i] = amount
+	}
+	return
+}

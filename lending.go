@@ -17,7 +17,7 @@ func bookingList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	type displayBooking struct {
-		ID      int
+		ID      int64
 		User    string
 		Devices [5]int
 	}
@@ -72,7 +72,12 @@ func bookingPage(w http.ResponseWriter, r *http.Request) {
 		permissionDenied(w, r)
 		return
 	}
-	id, _ := strconv.Atoi(mux.Vars(r)["id"])
+	var id int64
+	if i, err := strconv.Atoi(mux.Vars(r)["id"]); err != nil {
+		log.Fatalln(err)
+	} else {
+		id = int64(i)
+	}
 	log.Println("id: ", id)
 	row := db.QueryRow(`
 		SELECT U.Name, LendingTime, ReturnTime
@@ -81,12 +86,9 @@ func bookingPage(w http.ResponseWriter, r *http.Request) {
 		`, id)
 	page := struct {
 		User
-		BID         int
-		UName       string
-		From        time.Time
-		Until       time.Time
-		Devices     [5]int
+		Booking
 		ItemsName   [5]string
+		Status      string
 		AbleLending bool
 	}{}
 	page.User = user
@@ -98,33 +100,66 @@ func bookingPage(w http.ResponseWriter, r *http.Request) {
 		log.Fatalln("Query booking error: ", err)
 		return
 	}
-	page.BID = id
+	page.Booking.ID = id
 	page.ItemsName = itemsName
-	page.Devices = getBookingDevices(page.BID)
-	now := time.Now()
-	if now.Before(page.Until) {
-
-	}
-
+	page.Devices = getBookingDevices(page.Booking.ID)
+	page.Status = page.getStatus()
+	page.AbleLending = page.Status == "可借出"
 	checkErr(tpl.ExecuteTemplate(w, "booking.html", page), "Execute booking data page fatal: ")
 }
 
-func ableLendout(b Booking) bool {
+func (b *Booking) getStatus() string {
+	if b.alreadyReturned() {
+		return "已歸還"
+	} else if b.alreadyLendout() {
+		return "已借出"
+	} else if b.ableLendout() {
+		return "可借出"
+	} else if b.Until.Before(time.Now()) {
+		return "預約過期"
+	} else {
+		return "尚不可借出，請先借出更早的預約"
+	}
+}
+
+func (b *Booking) ableLendout() bool {
 	/*
 		Return this booking is able to lendout or not
 		Check whether every booking before it after now are already lended
 	*/
-	/*
-		rows := db.QueryRow(`
+	if b.Until.Before(time.Now()) {
+		// 已經到了歸還時間，不須借
+		return false
+	}
+	if b.alreadyLendout() {
+		// 已經全部借出，不需借
+		return false
+	}
+	// 檢查在此事件之前的所有預約是否已經借出，如果否，則不能借出。
+	rows, err := db.Query(`
 			SELECT ID
 			FROM Bookings
-			WHERE ReturnDate
-			`)
-	*/
-	return false
+			WHERE ReturnTime > ? and ReturnTime < ?;
+			`, time.Now(), b.Until)
+	checkErr(err, "func ableLendout: Query fatal: ")
+	for rows.Next() {
+		var id int64
+		checkErr(rows.Scan(&id), "func ableLendout: scan fatal: ")
+		booking := Booking{
+			ID:      id,
+			Devices: getBookingDevices(id),
+		}
+		if !booking.alreadyLendout() {
+			return false
+		}
+	}
+	return true
 }
 
-func alreadyLendout(b Booking) bool {
+func (b *Booking) alreadyLendout() bool {
+	/*
+		Return whether booking is all lending out
+	*/
 	stmt, err := db.Prepare(`
 	SELECT COUNT(1)
 	FROM Records R, Devices D
@@ -146,23 +181,38 @@ func alreadyLendout(b Booking) bool {
 	return true
 }
 
-func getBookingDevices(id int) (devices [5]int) {
-	rows, err := db.Query(`
-	SELECT Type, Amount
-	FROM BookingDevices
-	WHERE BID = ?
-	ORDER BY Type;
-	`, id)
-	checkErr(err, "Query booking devices fatal: ")
-	i := 0
-	for rows.Next() {
-		var t string
-		var amount int
-		checkErr(rows.Scan(&t, &amount), "getBookingDevices Scan rows fatal: ")
-		for itemsType[i] != t && i < 5 {
-			i++
-		}
-		devices[i] = amount
+func (b *Booking) alreadyReturned() bool {
+	if !b.alreadyLendout() {
+		return false
 	}
-	return
+	var result bool
+	row := db.QueryRow(`
+		SELECT Done
+		FROM Bookings
+		WHERE ID = ?;
+	`, b.ID)
+	checkErr(row.Scan(&result), "func alreadyReturned: Scan fatal: ")
+	if result {
+		return true
+	}
+	var v int
+	row = db.QueryRow(`
+		SELECT COUNT(1)
+		FROM Records
+		WHERE Booking = ? and LentUntil is NULL;
+	`, b.ID)
+
+	if err := row.Scan(&v); err == sql.ErrNoRows {
+		go func(b *Booking) {
+			db.Exec(`
+				UPDATE Bookings
+				SET Done = true
+				WHERE ID = ?;
+			`, b.ID)
+		}(b)
+		return true
+	} else if err != nil {
+		log.Fatalln("func alreadyReturned: scan error: ", err)
+	}
+	return false
 }
