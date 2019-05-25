@@ -20,13 +20,23 @@ function newRecord() {
           var device = document.createElement('p')
           device.textContent = type + " " + devicesID
           document.getElementById("devices-list").appendChild(device)
+          document.getElementById("input-entry").value = ""
+          if (obj["done"]) {
+            window.location = "/bookings/" + bid + "/records"
+          }
           break
+
         case 403:
           alert(devicesID + " 已被借出")
           break
+
         case 404:
           alert(devicesID + " 找不到此設備")
           break
+
+        case 405:
+          alert("數量已達上限")
+          break 
       }
     }
   }

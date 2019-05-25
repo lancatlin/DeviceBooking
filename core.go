@@ -7,16 +7,20 @@ import (
 )
 
 func (b *Booking) getStatus() string {
-	if b.Until.Before(time.Now()) {
-		return "預約過期"
-	} else if b.alreadyReturned() {
-		return "已歸還"
-	} else if b.alreadyLendout() {
-		return "已借出"
-	} else if b.ableLendout() {
-		return "可借出"
+	if b.alreadyLendout() {
+		if b.alreadyReturned() {
+			return "已歸還"
+		} else {
+			return "借出中"
+		}
 	} else {
-		return "尚不可借出"
+		if b.ableLendout() {
+			return "可借出"
+		} else if b.Until.Before(time.Now()) {
+			return "預約過期"
+		} else {
+			return "尚不可借出"
+		}
 	}
 }
 

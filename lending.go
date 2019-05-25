@@ -89,7 +89,6 @@ func bookingPage(w http.ResponseWriter, r *http.Request) {
 	} else {
 		id = int64(i)
 	}
-	log.Println("id: ", id)
 	row := db.QueryRow(`
 		SELECT U.Name, LendingTime, ReturnTime
 		FROM Bookings B, Users U
@@ -116,12 +115,10 @@ func bookingPage(w http.ResponseWriter, r *http.Request) {
 	page.Devices = getBookingDevices(page.Booking.ID)
 	page.Status = page.getStatus()
 	page.AbleLending = page.Status == "可借出"
-	log.Println(page.Booking, time.Now())
 	checkErr(tpl.ExecuteTemplate(w, "booking.html", page), "Execute booking data page fatal: ")
 }
 
 func newRecord(w http.ResponseWriter, r *http.Request) {
-	log.Println("Receive new record")
 	var bID int64
 	if i, err := strconv.Atoi(r.FormValue("bid")); err != nil {
 		w.WriteHeader(404)
@@ -130,7 +127,6 @@ func newRecord(w http.ResponseWriter, r *http.Request) {
 		bID = int64(i)
 	}
 	dID := r.FormValue("device")
-	log.Println("bID: ", bID, "\tdID: ", dID)
 	// 檢查設備是否已借出
 	row := db.QueryRow(`
 		SELECT COUNT(1)
@@ -140,7 +136,6 @@ func newRecord(w http.ResponseWriter, r *http.Request) {
 	var v int
 	if err := row.Scan(&v); v != 0 {
 		// 已被借出
-		log.Println(v, err)
 		w.WriteHeader(403)
 		return
 	} else if err != nil {
@@ -158,7 +153,10 @@ func newRecord(w http.ResponseWriter, r *http.Request) {
 	}
 	// 檢查預約是否已滿
 	b := getBooking(bID)
-	log.Println(b)
+	if !b.ableLendout() {
+		w.WriteHeader(401)
+		return
+	}
 	row = db.QueryRow(`
 	SELECT COUNT(1)
 	FROM Records R, Devices D
@@ -171,9 +169,8 @@ func newRecord(w http.ResponseWriter, r *http.Request) {
 		log.Fatalln(err)
 	}
 	i := typeToIndex[dType]
-	log.Println("type: ", itemsType[i])
 	if amount == b.Devices[i] {
-		w.WriteHeader(403)
+		w.WriteHeader(405)
 		return
 	} else if amount > b.Devices[i] {
 		log.Fatalln("Amount more than booking !", amount, b.Devices[i])
@@ -190,8 +187,8 @@ func newRecord(w http.ResponseWriter, r *http.Request) {
 	{
 		"type": "%s",
 		"amount": %d,
-		"done": %t,
-		"recordID": "%d"
-	}`, dType, amount+1, amount+1 == b.Devices[i], rID)
+		"recordID": "%d",
+		"done": %t
+	}`, dType, amount+1, rID, b.alreadyLendout())
 	checkErr(err, "")
 }
