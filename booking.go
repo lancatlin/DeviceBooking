@@ -155,19 +155,19 @@ func getBookingDevices(id int64) (devices [5]int) {
 	return
 }
 
-func getBooking(id int64) (b Booking) {
-	b = Booking{}
+func getBooking(id int64) (Booking, error) {
+	b := Booking{}
 	row := db.QueryRow(`
 		SELECT U.Name, LendingTime, ReturnTime
 		FROM Bookings B, Users U
 		WHERE B.ID = ? and U.ID = B.User;
 	`, id)
 	if err := row.Scan(&b.UName, &b.From, &b.Until); err == sql.ErrNoRows {
-		return
+		return b, ErrBookingNotFound
 	} else if err != nil {
 		log.Fatalln(err)
 	}
 	b.ID = id
 	b.Devices = getBookingDevices(id)
-	return
+	return b, nil
 }

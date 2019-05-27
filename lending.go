@@ -152,7 +152,11 @@ func newRecord(w http.ResponseWriter, r *http.Request) {
 		log.Fatalln(err)
 	}
 	// 檢查預約是否已滿
-	b := getBooking(bID)
+	b, err := getBooking(bID)
+	if err == ErrBookingNotFound {
+		w.WriteHeader(401)
+		return
+	}
 	if !b.ableLendout() {
 		w.WriteHeader(401)
 		return
