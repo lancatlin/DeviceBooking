@@ -1,0 +1,45 @@
+header {
+  text-align:left;
+}
+.top-bar {
+  overflow:hidden;
+  background-color:#6c7e9aff;
+  height: 45px;
+}
+.button-div a {
+  float:left;
+  display: block;
+  padding: 10px 16px;
+  text-decoration: none;
+  text-align: center;
+  color:white;
+}
+.button-div a:hover {
+  background-color: #ddd;
+  color: black;
+}
+
+.right-div {
+  text-align: right;
+}
+
+.right-div p {
+  color: white;
+  display: block;
+  float: right;
+  margin: 10px;
+}
+
+.right-div a {
+  float:right;
+  display: block;
+  padding: 10px 16px;
+  text-decoration: none;
+  text-align: center;
+  color:white;
+}
+
+.button-div a:hover {
+  background-color: #ddd;
+  color: black;
+}

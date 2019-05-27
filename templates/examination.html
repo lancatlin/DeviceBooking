@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>完成預約</title>
+    <link rel="stylesheet" href="/static/style.css">
+  </head>
+  <body>
+    {{template "header" .}}
+    <main>
+      <h1>完成預約</h1>
+      <p>借用人：{{.Username}}</p>
+      <p>借用日：{{.Date}} {{.Weekday}} {{.Class}}
+      <div>
+        {{$devices := .Devices}}
+        {{range $i, $n := .ItemsName}}
+          <p>{{$n}}：{{index $devices $i}}</p>
+        {{end}}
+      </div>
+      <a href="/bookings/new">新增預約</a>
+      <a href="/bookings/{{.Booking.ID}}">預約紀錄頁面</a>
+    </main>
+  </body>
+</html>

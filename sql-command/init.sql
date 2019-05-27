@@ -1,6 +1,6 @@
 
 CREATE TABLE IF NOT EXISTS Users (
-  ID INT PRIMARY KEY,
+  ID INT PRIMARY KEY AUTO_INCREMENT,
   Email VARCHAR(64) UNIQUE NOT NULL,
   Name VARCHAR(32) NOT NULL,
   Type ENUM('Admin', 'Teacher') DEFAULT 'Teacher',
@@ -14,16 +14,20 @@ CREATE TABLE IF NOT EXISTS Devices (
 );
 
 CREATE TABLE IF NOT EXISTS Bookings (
-  ID INT PRIMARY KEY,
+  ID INT PRIMARY KEY AUTO_INCREMENT,
   User INT NOT NULL,
   LendingTime DATETIME NOT NULL,
   ReturnTime DATETIME NOT NULL,
-  Teacher INT DEFAULT 0,
-  Student INT DEFAULT 0,
-  Chromebook INT DEFAULT 0,
-  WAP INT DEFAULT 0,
-  Projector INT DEFAULT 0,
+  Done BOOL DEFAULT false,
   FOREIGN KEY (User) REFERENCES Users (ID)
+);
+
+CREATE TABLE IF NOT EXISTS BookingDevices (
+  BID INT,
+  Type ENUM('Student-iPad', 'Teacher-iPad', 'Chromebook', 'WAP', 'WirelessProjector'),
+  Amount INT DEFAULT 0,
+  FOREIGN KEY (BID) REFERENCES Bookings (ID),
+  PRIMARY KEY (BID, Type)
 );
 
 CREATE TABLE IF NOT EXISTS Records (
@@ -34,4 +38,12 @@ CREATE TABLE IF NOT EXISTS Records (
   PRIMARY KEY (Booking, Device),
   FOREIGN KEY (Booking) REFERENCES Bookings (ID),
   FOREIGN KEY (Device) REFERENCES Devices (ID)
+);
+
+CREATE TABLE Sessions (
+	ID CHAR(36),
+	User INT NOT NULL,
+	LastUsed TIMESTAMP NOT NULL,
+	PRIMARY KEY (ID),
+	FOREIGN KEY (User) REFERENCES Users (ID)
 );

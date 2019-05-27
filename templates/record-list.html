@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>{{.Booking.ID}} 借出設備列表</title>
+    <link rel="stylesheet" href="/static/style.css">
+  </head>
+  <body>
+    {{template "header" .}}
+    <main>
+      <h1>{{.Booking.ID}} 借出設備列表</h1>
+      {{$login := .Login}}
+      {{$type := .Type}}
+      <table>
+        <tr>
+          <td>Type</td>
+          <td>Device</td>
+        </tr>
+        {{range .Records}}
+        <tr>
+          <td>{{.Type}}</td>
+          <td>{{.Device}}</td>
+          {{if eq $type "Admin"}}<td><a href="">歸還</a></td>{{end}}
+        </tr>
+        {{end}}
+      </table>
+    </main>
+  </body>
+</html>

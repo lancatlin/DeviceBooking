@@ -2,9 +2,13 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"strconv"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 func checkErr(err error, msg string) {
@@ -40,5 +44,37 @@ func insertData(stmt *sql.Stmt, list []string, t string) {
 	for _, v := range list {
 		_, err := stmt.Exec(v, t)
 		checkErr(err, "Insert Error: ")
+	}
+}
+
+func initUsers(filename string) {
+	file, err := os.Open(filename)
+	if err != nil {
+		log.Fatalln("Can't open file: ", err)
+	}
+	defer file.Close()
+	type userData struct {
+		Name     string `json:"name"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+	dec := json.NewDecoder(file)
+	var users []userData
+	if err := dec.Decode(&users); err != nil {
+		log.Fatalln("json decode fatal: ", err)
+	}
+	log.Println(users)
+	for _, user := range users {
+		password, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+		if err != nil {
+			log.Fatal("Password generate error: ", err)
+		}
+		_, err = db.Exec(`
+		INSERT INTO Users (Name, Email, Password)
+		VALUES (?, ?, ?);
+		`, user.Name, user.Email, password)
+		if err != nil {
+			log.Fatalln("Insert fatal: ", err)
+		}
 	}
 }

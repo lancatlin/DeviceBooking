@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="/static/style.css">
+    <title>{{.Title}}</title>
+  </head>
+  <body>
+    {{template "header" .}}
+    <main>
+      <h1>{{.Title}}</h1>
+      <p>{{.Content}}</p>
+      {{.Target}}
+    </main>
+  </body>
+</html>

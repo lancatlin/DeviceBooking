@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>預約</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/booking.css">
+  </head>
+  <body>
+    {{template "header" .}}
+    <main>
+      <div>
+        <form action="/bookings" method="POST">
+          <p>iPad 學生機：<input type="number" name="student"></p>
+          <p>iPad 教師機：<input type="number" name="teacher"></p>
+          <p>Chromebook：<input type="number" name="chromebook"></p>
+          <p>Wifi 基地台：<input type="number" name="wap"></p>
+          <p>無線投影機：<input type="number" name="wireless-projector"></p>
+          <div id="dates-div">
+            <input type="date" name="date" id="" min="{{.Min}}" max="{{.Max}}">
+            <select name="class" id="">
+              {{range $i, $v := .Classes}}
+              <option value="{{$i}}">{{$v}}</option>
+              {{end}}
+            </select>
+          </div>
+          <input type="submit" value="完成">
+        </form>
+      </div>
+    </main>
+  </body>
+</html>
