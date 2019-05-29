@@ -3,6 +3,7 @@
   <head>
     <title>{{.Booking.ID}} 借出設備列表</title>
     <link rel="stylesheet" href="/static/css/style.css">
+    <script src="/static/scripts/records.js"></script>
   </head>
   <body>
     {{template "header" .}}
@@ -10,6 +11,7 @@
       <h1>{{.Booking.ID}} 借出設備列表</h1>
       {{$login := .Login}}
       {{$type := .Type}}
+      <button id="return-all" onclick="returnAll()">一鍵歸還</button>
       <table>
         <tr>
           <td>Type</td>
@@ -19,7 +21,9 @@
         <tr>
           <td>{{.Type}}</td>
           <td>{{.Device}}</td>
-          {{if eq $type "Admin"}}<td><a href="">歸還</a></td>{{end}}
+          {{if eq $type "Admin"}}
+          <td><button class="device" onclick="returnRecord(this)" value="{{.Device}}" {{if .Done}}disabled="true"{{end}}>{{if eq .Done true}}已歸還{{else}}歸還{{end}}</button></td>
+          {{end}}
         </tr>
         {{end}}
       </table>

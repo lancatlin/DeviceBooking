@@ -10,7 +10,7 @@ import (
 
 func (b *Booking) getRecords() (list []Record) {
 	rows, err := db.Query(`
-		SELECT Device, Type
+		SELECT Device, Type, LentUntil IS NOT NULL
 		FROM Records R, Devices D
 		WHERE Device = D.ID and Booking = ?
 		ORDER BY Type;
@@ -22,7 +22,7 @@ func (b *Booking) getRecords() (list []Record) {
 	for rows.Next() {
 		r := Record{}
 		r.Booking = b.ID
-		err := rows.Scan(&r.Device, &r.Type)
+		err := rows.Scan(&r.Device, &r.Type, &r.Done)
 		if err != nil {
 			log.Fatalln("Scan fatal: ", err)
 		}

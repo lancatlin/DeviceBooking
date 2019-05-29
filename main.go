@@ -62,6 +62,7 @@ func main() {
 	r.HandleFunc("/bookings/{id:[0-9]+}/lend", lendForm)
 	r.HandleFunc("/bookings/{id:[0-9]+}/records", recordList)
 	r.HandleFunc("/records", newRecord).Methods("POST")
+	r.HandleFunc("/records", handleReturnDevice).Methods("DELETE")
 	r.HandleFunc("/login", login)
 	r.HandleFunc("/logout", logout)
 	r.HandleFunc("/check", checkPage)

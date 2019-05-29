@@ -10,17 +10,15 @@ func (b *Booking) getStatus() string {
 	if b.alreadyLendout() {
 		if b.alreadyReturned() {
 			return "已歸還"
-		} else {
-			return "借出中"
 		}
+		return "借出中"
+	}
+	if b.ableLendout() {
+		return "可借出"
+	} else if b.Until.Before(time.Now()) {
+		return "預約過期"
 	} else {
-		if b.ableLendout() {
-			return "可借出"
-		} else if b.Until.Before(time.Now()) {
-			return "預約過期"
-		} else {
-			return "尚不可借出"
-		}
+		return "尚不可借出"
 	}
 }
 
@@ -53,31 +51,14 @@ func (b *Booking) alreadyReturned() bool {
 	if !b.alreadyLendout() {
 		return false
 	}
-	var result bool
-	row := db.QueryRow(`
-		SELECT Done
-		FROM Bookings
-		WHERE ID = ?;
-	`, b.ID)
-	checkErr(row.Scan(&result), "func alreadyReturned: Scan fatal: ")
-	if result {
-		return true
-	}
 	var v int
-	row = db.QueryRow(`
+	row := db.QueryRow(`
 		SELECT COUNT(1)
 		FROM Records
 		WHERE Booking = ? and LentUntil is NULL;
 	`, b.ID)
 
-	if err := row.Scan(&v); err == sql.ErrNoRows {
-		go func(b *Booking) {
-			db.Exec(`
-				UPDATE Bookings
-				SET Done = true
-				WHERE ID = ?;
-			`, b.ID)
-		}(b)
+	if err := row.Scan(&v); v == 0 {
 		return true
 	} else if err != nil {
 		log.Fatalln("func alreadyReturned: scan error: ", err)

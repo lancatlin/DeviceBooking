@@ -38,6 +38,7 @@ type Record struct {
 	Device  string
 	Type    string
 	Booking int64
+	Done    bool
 }
 
 func newUser(id int, name, utype string) User {
