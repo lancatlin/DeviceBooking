@@ -27,24 +27,23 @@ func bookingList(w http.ResponseWriter, r *http.Request) {
 		Devices  [5]int
 	}
 	d := r.FormValue("date")
-	var today time.Time
+	var date time.Time
 	var err error
 	if d == "" {
-		today = time.Now()
+		date = time.Now()
 	} else {
-		today, err = time.ParseInLocation("2006-01-02", d, time.Local)
+		date, err = time.ParseInLocation("2006-01-02", d, time.Local)
 		checkErr(err, "Parse date fatal: ")
 	}
-	date := today.Format("2006-01-02")
-	day := today.Weekday().String()
+	day := date.Weekday().String()
 	page := struct {
 		User
-		Date      string
+		Date      time.Time
 		Day       string
 		Classes   []classBooking
-		Yesterday string
-		Tomorrow  string
-	}{user, date, day, []classBooking{}, today.AddDate(0, 0, -1).Format("2006-01-02"), today.AddDate(0, 0, 1).Format("2006-01-02")}
+		Yesterday time.Time
+		Tomorrow  time.Time
+	}{user, date, day, []classBooking{}, date.AddDate(0, 0, -1), date.AddDate(0, 0, 1)}
 	stmt, err := db.Prepare(`
 	SELECT B.ID, U.Name, B.LendingTime, B.ReturnTime
 	FROM Bookings B, Users U
@@ -53,7 +52,7 @@ func bookingList(w http.ResponseWriter, r *http.Request) {
 	checkErr(err, "booking list check query prepare fatal: ")
 	for c := 0; c < len(className); c++ {
 		thisClass := classBooking{className[c], []displayBooking{}, [5]int{}}
-		rows, err := stmt.Query(parseClass(date, classBegin[c]), parseClass(date, classEnd[c]))
+		rows, err := stmt.Query(date.Add(classBegin[c]), date.Add(classEnd[c]))
 		checkErr(err, "bookings query error: ")
 		defer rows.Close()
 		for rows.Next() {

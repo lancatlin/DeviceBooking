@@ -63,6 +63,5 @@ func lendForm(w http.ResponseWriter, r *http.Request) {
 		ItemsName [5]string
 		ItemsType [5]string
 	}{user, b, itemsName, itemsType}
-	log.Println(page)
 	checkErr(tpl.ExecuteTemplate(w, "lending.html", page), "Execute lending form fatal: ")
 }

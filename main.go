@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"text/template"
+	"time"
 
 	"github.com/gorilla/mux"
 
@@ -21,7 +22,13 @@ var tpl *template.Template
 func init() {
 	log.SetFlags(log.Lshortfile)
 	var err error
-	tpl, err = template.ParseGlob("templates/*.html")
+	funcmap := template.FuncMap{
+		"formatDuration": formatDuration,
+		"formatDate": func(t time.Time) string {
+			return t.Format("01-02")
+		},
+	}
+	tpl, err = template.New("MyTemplate").Funcs(funcmap).ParseGlob("templates/*.html")
 	if err != nil {
 		log.Fatalln(err)
 	}

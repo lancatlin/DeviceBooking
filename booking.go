@@ -36,7 +36,7 @@ func newBooking(w http.ResponseWriter, r *http.Request) {
 	b.Devices[chromebook], _ = strconv.Atoi(r.FormValue("chromebook"))
 	b.Devices[wap], _ = strconv.Atoi(r.FormValue("wap"))
 	b.Devices[projector], _ = strconv.Atoi(r.FormValue("wireless-projector"))
-	date := r.FormValue("date")
+	date := parseSQLTime(r.FormValue("date"))
 	class, err := strconv.Atoi(r.FormValue("class"))
 	checkErr(err, "")
 	if class < 0 || class > 10 {
@@ -49,7 +49,7 @@ func newBooking(w http.ResponseWriter, r *http.Request) {
 		checkErr(tpl.ExecuteTemplate(w, "msg.html", page), "func newBooking: render fatal: ")
 		return
 	}
-	if msg := b.enough(check(date, class)); len(msg) != 0 {
+	if msg := b.enough(check(date.Add(classBegin[class]), date.Add(classEnd[class]))); len(msg) != 0 {
 		page := struct {
 			User
 			Title   string
@@ -59,10 +59,9 @@ func newBooking(w http.ResponseWriter, r *http.Request) {
 		checkErr(tpl.ExecuteTemplate(w, "msg.html", page), "func newBooking: render fatal: ")
 		return
 	}
-	b.From = parseSQLTime(date + " " + classBegin[class] + ":00")
-	b.Until = parseSQLTime(date + " " + classEnd[class] + ":00")
+	b.From = date.Add(classBegin[class])
+	b.Until = date.Add(classEnd[class])
 	b.insertBooking(user)
-	log.Println("b.ID: ", b.ID)
 	checkErr(err, "Parse time fatal: ")
 	page := struct {
 		User
@@ -71,8 +70,7 @@ func newBooking(w http.ResponseWriter, r *http.Request) {
 		Class     string
 		Weekday   string
 		ItemsName [5]string
-	}{user, b, date, className[class], b.From.Weekday().String(), itemsName}
-	log.Println("page.ID", page.Booking.ID)
+	}{user, b, date.Format("2006-01-02"), className[class], b.From.Weekday().String(), itemsName}
 	checkErr(tpl.ExecuteTemplate(w, "examination.html", page), "Execute examination fatal: ")
 }
 

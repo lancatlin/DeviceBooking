@@ -11,12 +11,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func checkErr(err error, msg string) {
-	if err != nil {
-		log.Fatalln(msg, err)
-	}
-}
-
 func initDevices() {
 	stmt, err := db.Prepare(`
 	INSERT INTO Devices

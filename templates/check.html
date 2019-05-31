@@ -7,24 +7,24 @@
   <body>
     <div>
       {{template "header" .}}
+      <a href="/check?p={{.Previous}}">上一週</a><a href="/check?p={{.Next}}">下一週</a>
       <table align="center">
         <tr>
           <th>  </th>
           {{range .Dates}}
-          <th>{{.}}</th>
+          <th>{{formatDate .}}</th>
           {{end}}
         </tr>
         {{$days := .Dates}}
         {{$times := .Times}}
-        {{$iPads := .IPads}}
-        {{$chromebooks := .Chromebooks}}
+        {{$devices := .Devices}}
         {{range $i, $class := .Classes}}
         <tr>
-          <td><p>{{$class}}</p><p>{{index $times $i}}</p></td>
+          <td><p>{{$class}}</p><p>{{formatDuration (index $times $i)}}</p></td>
           {{range $j, $day := $days}}
           <td>
-            <p class="iPad">iPad: {{index $iPads $j $i}}</p>
-            <p class="Chromebook">Chrome: {{index $chromebooks $j $i}}</p>
+            <p class="iPad">iPad: {{index $devices $j $i 0}}</p>
+            <p class="Chromebook">Chrome: {{index $devices $j $i 2}}</p>
           </td>
           {{end}}
         </tr>
