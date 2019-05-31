@@ -44,6 +44,9 @@
                     {{if eq .Status "可借出"}}
                     <td><a href="/bookings/{{.ID}}/lend">借出</a></td>
                     {{end}}
+                    {{if eq .Status "借出中"}}
+                    <td><a href="/bookings/{{.ID}}/records">還入</a></td>
+                    {{end}}
                 </tr>
                 {{end}}
             {{end}}

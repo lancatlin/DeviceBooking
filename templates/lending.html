@@ -35,5 +35,17 @@
       <button onclick="newRecord()">確認</button>
       <div id="devices-list"></div>
     </main>
+    <script>
+    var input = document.getElementById("input-entry")
+    input.addEventListener("keyup", function(ev) {
+      console.log("keyup event")
+      if (ev.keyCode === 13) {
+        // Enter
+        console.log("Press enter")
+        ev.preventDefault()
+        newRecord()
+      }
+    })
+    </script>
   </body>
 </html>
