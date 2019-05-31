@@ -7,7 +7,7 @@
     {{template "header" .}}
     <div>
       <h2>{{formatDate .Date}} {{.Day}}</h2>
-      <a href="/bookings?date={{.Yesterday}}">前一天</a><a href="/bookings?date={{.Tomorrow}}">下一天</a>
+      <a href="/bookings?date={{formatDate .Yesterday}}">前一天</a><a href="/bookings?date={{formatDate .Tomorrow}}">下一天</a>
       <form action="/bookings" method="get">
         <input type="date" name="date" id=""><input type="submit" value="跳轉">
       </form>

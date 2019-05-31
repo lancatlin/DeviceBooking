@@ -36,7 +36,8 @@ func newBooking(w http.ResponseWriter, r *http.Request) {
 	b.Devices[chromebook], _ = strconv.Atoi(r.FormValue("chromebook"))
 	b.Devices[wap], _ = strconv.Atoi(r.FormValue("wap"))
 	b.Devices[projector], _ = strconv.Atoi(r.FormValue("wireless-projector"))
-	date := parseSQLTime(r.FormValue("date"))
+	date, err := time.ParseInLocation("2006-01-02", r.FormValue("date"), time.Local)
+	checkErr(err, "")
 	class, err := strconv.Atoi(r.FormValue("class"))
 	checkErr(err, "")
 	if class < 0 || class > 10 {

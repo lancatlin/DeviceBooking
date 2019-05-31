@@ -25,7 +25,7 @@ func init() {
 	funcmap := template.FuncMap{
 		"formatDuration": formatDuration,
 		"formatDate": func(t time.Time) string {
-			return t.Format("01-02")
+			return t.Format("2006-01-02")
 		},
 	}
 	tpl, err = template.New("MyTemplate").Funcs(funcmap).ParseGlob("templates/*.html")
