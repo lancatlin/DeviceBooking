@@ -10,15 +10,6 @@ import (
 	"time"
 )
 
-// Booking 紀錄預約資料
-type Booking struct {
-	ID      int64
-	Devices [5]int
-	From    time.Time
-	Until   time.Time
-	UName   string
-}
-
 func newBooking(w http.ResponseWriter, r *http.Request) {
 	/*
 		Handle /bookings

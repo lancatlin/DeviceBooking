@@ -34,12 +34,12 @@ func lendForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var id int64
-	if i, err := strconv.Atoi(mux.Vars(r)["id"]); err != nil {
+	a, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
 		notFound(w, r)
 		return
-	} else {
-		id = int64(i)
 	}
+	id = int64(a)
 	b, err := getBooking(id)
 	if err == ErrBookingNotFound {
 		notFound(w, r)

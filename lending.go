@@ -119,12 +119,12 @@ func bookingPage(w http.ResponseWriter, r *http.Request) {
 
 func newRecord(w http.ResponseWriter, r *http.Request) {
 	var bID int64
-	if i, err := strconv.Atoi(r.FormValue("bid")); err != nil {
+	a, err := strconv.Atoi(r.FormValue("bid"))
+	if err != nil {
 		w.WriteHeader(404)
 		return
-	} else {
-		bID = int64(i)
 	}
+	bID = int64(a)
 	dID := r.FormValue("device")
 	// 檢查設備是否已借出
 	row := db.QueryRow(`

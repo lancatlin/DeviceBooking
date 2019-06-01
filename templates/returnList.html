@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>借出預約列表</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+  </head>
+  <body>
+    {{template "header" .}}
+    <main>
+      <h1>借出預約列表</h1>
+      <table>
+        <tr>
+          <th>教師</th>
+          <th>From</th>
+          <th>Until</th>
+          <th>連結</th>
+          <th>狀態</th>
+          <th>還入</th>
+        </tr>
+        {{range .Bookings}}
+        <tr>
+          <td>{{.UName}}</td>
+          <td>{{.From}}</td>
+        </tr>
+        {{end}}
+      </table>
+      
+    </main>
+  </body>
+</html>

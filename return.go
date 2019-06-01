@@ -41,3 +41,43 @@ func handleReturnDevice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func getReturnList() (result []Booking) {
+	/*
+		回傳所有的借出中預約
+	*/
+	result = []Booking{}
+	rows, err := db.Query(`
+	SELECT ID
+	FROM Bookings;
+	`)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id); err != nil {
+			log.Panicln(err)
+		}
+		b := Booking{ID: id}
+		if b.alreadyLendout() && !b.alreadyReturned() {
+			b, err := getBooking(id)
+			checkErr(err, "get booking fatal: ")
+			result = append(result, b)
+		}
+	}
+	return
+}
+
+func handleReturnList(w http.ResponseWriter, r *http.Request) {
+	user := getUser(w, r)
+	if !user.Login || user.Type != "Admin" {
+		permissionDenied(w, r)
+		return
+	}
+	page := struct {
+		User
+		Bookings []Booking
+	}{user, getReturnList()}
+	checkErr(tpl.ExecuteTemplate(w, "returnList.html", page), "Execute fatal: ")
+}

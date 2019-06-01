@@ -37,6 +37,15 @@ type User struct {
 	Login    bool
 }
 
+// Booking 紀錄預約資料
+type Booking struct {
+	ID      int64
+	Devices [5]int
+	From    time.Time
+	Until   time.Time
+	UName   string
+}
+
 // Record structure
 type Record struct {
 	Device  string
