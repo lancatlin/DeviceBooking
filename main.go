@@ -25,7 +25,10 @@ func init() {
 	funcmap := template.FuncMap{
 		"formatDuration": formatDuration,
 		"formatDate": func(t time.Time) string {
-			return t.Format("2006-01-02")
+			return t.Local().Format("2006-01-02")
+		},
+		"formatTime": func(t time.Time) string {
+			return t.Local().Format("15:04")
 		},
 	}
 	tpl, err = template.New("MyTemplate").Funcs(funcmap).ParseGlob("templates/*.html")
@@ -63,6 +66,7 @@ func main() {
 	r.Handle("/favicon.ico", http.NotFoundHandler())
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 	r.HandleFunc("/bookings/new", bookingForm)
+	r.HandleFunc("/bookings/lending", handleLendingList)
 	r.HandleFunc("/bookings", bookingList).Methods("GET")
 	r.HandleFunc("/bookings", newBooking).Methods("POST")
 	r.HandleFunc("/bookings/{id:[0-9]+}", bookingPage)
@@ -70,7 +74,6 @@ func main() {
 	r.HandleFunc("/bookings/{id:[0-9]+}/records", recordList)
 	r.HandleFunc("/records", newRecord).Methods("POST")
 	r.HandleFunc("/records", handleReturnDevice).Methods("DELETE")
-	r.HandleFunc("/return", handleReturnList)
 	r.HandleFunc("/login", login)
 	r.HandleFunc("/logout", logout)
 	r.HandleFunc("/check", checkPage)

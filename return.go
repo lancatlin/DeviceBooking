@@ -42,7 +42,7 @@ func handleReturnDevice(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getReturnList() (result []Booking, err error) {
+func getLendingList() (result []Booking, err error) {
 	/*
 		回傳所有的借出中預約
 	*/
@@ -68,17 +68,16 @@ func getReturnList() (result []Booking, err error) {
 			result = append(result, b)
 		}
 	}
-	log.Println(result)
 	return
 }
 
-func handleReturnList(w http.ResponseWriter, r *http.Request) {
+func handleLendingList(w http.ResponseWriter, r *http.Request) {
 	user := getUser(w, r)
 	if !user.Login || user.Type != "Admin" {
 		permissionDenied(w, r)
 		return
 	}
-	bookings, err := getReturnList()
+	bookings, err := getLendingList()
 	if err != nil {
 		log.Panicln(err)
 	}

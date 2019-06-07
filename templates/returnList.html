@@ -11,6 +11,7 @@
       <table>
         <tr>
           <th>教師</th>
+          <th>日期</th>
           <th>From</th>
           <th>Until</th>
           <th>連結</th>
@@ -20,9 +21,10 @@
         {{range .Bookings}}
         <tr>
           <td>{{.UName}}</td>
-          <td>{{.From}}</td>
-          <td>{{.Until}}</td>
-          <td><a href="/bookings/{{.ID}}">連結</a></td>
+          <td>{{formatDate .From}}</td>
+          <td>{{formatTime .From}}</td>
+          <td>{{formatTime .Until}}</td>
+          <td><a href="/bookings/{{.ID}}">詳情</a></td>
           <td>{{.Status}}</td>
           <td><a href="/bookings/{{.ID}}/records">還入</a></td>
         </tr>

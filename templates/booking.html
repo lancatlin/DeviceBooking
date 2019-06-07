@@ -9,7 +9,7 @@
     <main>
       <div>
         <p>預約人： {{.UName}}</p>
-        <p>從 {{.From}} 到 {{.Until}}</p>
+        <p>{{formatDate .From}} {{formatTime .From}} 到 {{formatTime .Until}}</p>
         <p>狀態：{{.Status}}</p>
         {{if and (eq .Type "Admin") (eq .Status "借出中")}}
         <a href="/bookings/{{.Booking.ID}}/records">歸還</a>
