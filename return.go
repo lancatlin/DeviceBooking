@@ -42,7 +42,7 @@ func handleReturnDevice(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getReturnList() (result []Booking) {
+func getReturnList() (result []Booking, err error) {
 	/*
 		回傳所有的借出中預約
 	*/
@@ -56,16 +56,19 @@ func getReturnList() (result []Booking) {
 	}
 	for rows.Next() {
 		var id int64
-		if err := rows.Scan(&id); err != nil {
+		if err = rows.Scan(&id); err != nil {
 			log.Panicln(err)
 		}
-		b := Booking{ID: id}
-		if b.alreadyLendout() && !b.alreadyReturned() {
-			b, err := getBooking(id)
+		b, err := getBooking(id)
+		if err != nil {
+			log.Panic(err)
+		}
+		if b.Status = b.getStatus(); b.Status == StatusLending {
 			checkErr(err, "get booking fatal: ")
 			result = append(result, b)
 		}
 	}
+	log.Println(result)
 	return
 }
 
@@ -75,9 +78,13 @@ func handleReturnList(w http.ResponseWriter, r *http.Request) {
 		permissionDenied(w, r)
 		return
 	}
+	bookings, err := getReturnList()
+	if err != nil {
+		log.Panicln(err)
+	}
 	page := struct {
 		User
 		Bookings []Booking
-	}{user, getReturnList()}
+	}{user, bookings}
 	checkErr(tpl.ExecuteTemplate(w, "returnList.html", page), "Execute fatal: ")
 }

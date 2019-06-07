@@ -15,6 +15,14 @@ const (
 	projector
 )
 
+const (
+	StatusLending        = "借出中"
+	StatusReturned       = "已還入"
+	StatusAbleLendout    = "可借出"
+	StatusOverdue        = "預約過期"
+	StatusNotAbleLendout = "不可借出"
+)
+
 var (
 	// ErrBookingNotFound is returned by getBooking(id int64)
 	ErrBookingNotFound = errors.New("Cannot found current booking by ID")
@@ -44,6 +52,7 @@ type Booking struct {
 	From    time.Time
 	Until   time.Time
 	UName   string
+	Status  string
 }
 
 // Record structure

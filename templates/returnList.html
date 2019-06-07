@@ -21,6 +21,10 @@
         <tr>
           <td>{{.UName}}</td>
           <td>{{.From}}</td>
+          <td>{{.Until}}</td>
+          <td><a href="/bookings/{{.ID}}">連結</a></td>
+          <td>{{.Status}}</td>
+          <td><a href="/bookings/{{.ID}}/records">還入</a></td>
         </tr>
         {{end}}
       </table>
