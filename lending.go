@@ -30,7 +30,7 @@ func bookingList(w http.ResponseWriter, r *http.Request) {
 	var date time.Time
 	var err error
 	if d == "" {
-		date = time.Now()
+		date = zeroClock(time.Now())
 	} else {
 		date, err = time.ParseInLocation("2006-01-02", d, time.Local)
 		checkErr(err, "Parse date fatal: ")
@@ -69,11 +69,6 @@ func bookingList(w http.ResponseWriter, r *http.Request) {
 		page.Classes = append(page.Classes, thisClass)
 	}
 	checkErr(tpl.ExecuteTemplate(w, "bookingList.html", page), "Template execute fatal: ")
-}
-
-func getDateClass() (date string, day string) {
-
-	return
 }
 
 func bookingPage(w http.ResponseWriter, r *http.Request) {
