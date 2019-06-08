@@ -53,12 +53,10 @@ func (b *Booking) alreadyReturned() bool {
 	}
 	var v int
 	row := db.QueryRow(`
-		SELECT COUNT(1)
-		FROM Records
-		WHERE Booking = ? and LentUntil is NULL;
+		SELECT Amount FROM UnDoneBookings WHERE Booking = ?;
 	`, b.ID)
 
-	if err := row.Scan(&v); v == 0 {
+	if err := row.Scan(&v); err == sql.ErrNoRows {
 		return true
 	} else if err != nil {
 		log.Fatalln("func alreadyReturned: scan error: ", err)

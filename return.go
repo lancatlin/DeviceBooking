@@ -48,8 +48,8 @@ func getLendingList() (result []Booking, err error) {
 	*/
 	result = []Booking{}
 	rows, err := db.Query(`
-	SELECT ID
-	FROM Bookings;
+	SELECT Booking
+	FROM UnDoneBookings;
 	`)
 	if err != nil {
 		log.Fatalln(err)

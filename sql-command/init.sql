@@ -47,3 +47,15 @@ CREATE TABLE IF NOT EXISTS Sessions (
 	PRIMARY KEY (ID),
 	FOREIGN KEY (User) REFERENCES Users (ID)
 );
+
+CREATE OR REPLACE VIEW DoneBookings AS 
+SELECT ID, Device
+FROM Bookings B
+LEFT JOIN Records R
+ON B.ID = R.Booking;
+
+CREATE OR REPLACE VIEW UnDoneBookings AS 
+SELECT Booking, COUNT(1) AS Amount 
+FROM Records 
+WHERE LentUntil IS NULL
+GROUP BY Booking;
