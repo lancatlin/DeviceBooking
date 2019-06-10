@@ -69,13 +69,17 @@ func lendForm(w http.ResponseWriter, r *http.Request) {
 
 func devices(w http.ResponseWriter, r *http.Request) {
 	user := getUser(w, r)
+	qType := r.FormValue("type")
+	qLendout := r.FormValue("Lendout") == "true"
 	if !user.Login {
 		permissionDenied(w, r)
 	}
 	rows, err := db.Query(`
 	SELECT * FROM DevicesStatus;
 	`)
-	checkErr(err, "Query fatal: ")
+	if err != nil {
+		log.Fatalln(err)
+	}
 	type Device struct {
 		ID     string
 		Status bool
@@ -84,13 +88,15 @@ func devices(w http.ResponseWriter, r *http.Request) {
 	page := struct {
 		User
 		Devices []Device
-	}{user, []Device{}}
+		Types   map[string]string
+	}{user, []Device{}, make(map[string]string)}
 	for rows.Next() {
 		var device string
 		var status bool
 		var uname sql.NullString
 		var name string
-		if err := rows.Scan(&device, &status, &uname); err != nil {
+		var dType string
+		if err := rows.Scan(&device, &status, &uname, &dType); err != nil {
 			log.Fatal(err)
 		}
 		if !uname.Valid {
@@ -98,7 +104,16 @@ func devices(w http.ResponseWriter, r *http.Request) {
 		} else {
 			name = uname.String
 		}
+		if qType != "" && qType != dType {
+			continue
+		}
+		if qLendout && !status {
+			continue
+		}
 		page.Devices = append(page.Devices, Device{device, status, name})
+	}
+	for i := range itemsType {
+		page.Types[itemsType[i]] = itemsName[i]
 	}
 	if err := tpl.ExecuteTemplate(w, "devices.html", page); err != nil {
 		log.Fatal(err)

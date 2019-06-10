@@ -7,6 +7,15 @@
   <body>
     {{template "header" .}}
     <main>
+      <form action="/devices" method="get">
+        <select name="type" id="">
+          {{range $k, $v := .Types}}
+          <option value="{{$k}}">{{$v}}</option>
+          {{end}}
+        </select>
+        <input type="checkbox" name="Lendout" value="true">
+        <input type="submit" value="查詢">
+      </form>
       <table>
         <tr>
           <th>設備</th>
