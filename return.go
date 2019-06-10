@@ -48,8 +48,9 @@ func getLendingList() (result []Booking, err error) {
 	*/
 	result = []Booking{}
 	rows, err := db.Query(`
-	SELECT Booking
-	FROM UnDoneBookings;
+	SELECT ID
+	FROM UnDoneBookings
+	WHERE Amount != 0;
 	`)
 	if err != nil {
 		log.Fatalln(err)
@@ -59,14 +60,9 @@ func getLendingList() (result []Booking, err error) {
 		if err = rows.Scan(&id); err != nil {
 			log.Panicln(err)
 		}
-		b, err := getBooking(id)
-		if err != nil {
-			log.Panic(err)
-		}
-		if b.Status = b.getStatus(); b.Status == StatusLending {
-			checkErr(err, "get booking fatal: ")
-			result = append(result, b)
-		}
+		b, _ := getBooking(id)
+		b.Status = StatusLending
+		result = append(result, b)
 	}
 	return
 }

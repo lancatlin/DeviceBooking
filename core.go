@@ -51,17 +51,17 @@ func (b *Booking) alreadyReturned() bool {
 	if !b.alreadyLendout() {
 		return false
 	}
-	var v int
+	var returned bool
 	row := db.QueryRow(`
-		SELECT Amount FROM UnDoneBookings WHERE Booking = ?;
+		SELECT Amount = 0 FROM UnDoneBookings WHERE ID = ?;
 	`, b.ID)
 
-	if err := row.Scan(&v); err == sql.ErrNoRows {
-		return true
+	if err := row.Scan(&returned); err == sql.ErrNoRows {
+		log.Fatalln("No row found in UnDoneBookings: ", b.ID)
 	} else if err != nil {
 		log.Fatalln("func alreadyReturned: scan error: ", err)
 	}
-	return false
+	return returned
 }
 
 func (b *Booking) ableLendout() bool {

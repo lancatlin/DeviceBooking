@@ -48,14 +48,25 @@ CREATE TABLE IF NOT EXISTS Sessions (
 	FOREIGN KEY (User) REFERENCES Users (ID)
 );
 
-CREATE OR REPLACE VIEW DoneBookings AS 
-SELECT ID, Device
-FROM Bookings B
-LEFT JOIN Records R
-ON B.ID = R.Booking;
+CREATE OR REPLACE VIEW UnDoneRecords AS 
+SELECT Booking, Device
+FROM Records
+WHERE LentUntil IS NULL;
 
 CREATE OR REPLACE VIEW UnDoneBookings AS 
-SELECT Booking, COUNT(1) AS Amount 
-FROM Records 
-WHERE LentUntil IS NULL
-GROUP BY Booking;
+SELECT ID, COUNT(Device) AS Amount
+FROM Bookings B
+LEFT JOIN UnDoneRecords R
+ON B.ID = R.Booking 
+GROUP BY ID;
+
+CREATE OR REPLACE VIEW DevicesStatus AS 
+SELECT D.ID, COUNT(Device) AS Status, Name 
+FROM Devices D
+LEFT JOIN UnDoneRecords R
+ON D.ID = Device
+LEFT JOIN Bookings B
+ON B.ID = Booking 
+LEFT JOIN Users U
+ON U.ID = User 
+GROUP BY D.ID;

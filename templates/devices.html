@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>設備列表</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+  </head>
+  <body>
+    {{template "header" .}}
+    <main>
+      <table>
+        <tr>
+          <th>設備</th>
+          <th>狀態</th>
+          <th>借用人</th>
+        </tr>
+        {{range .Devices}}
+        <tr>
+          <td>{{.ID}}</td>
+          <td>{{if .Status}}借出中{{else}}館內{{end}}</td>
+          <td>{{.Uname}}</td>
+        </tr>
+        {{end}}
+      </table>
+    </main>
+  </body>
+</html>

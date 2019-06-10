@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
@@ -64,4 +65,42 @@ func lendForm(w http.ResponseWriter, r *http.Request) {
 		ItemsType [5]string
 	}{user, b, itemsName, itemsType}
 	checkErr(tpl.ExecuteTemplate(w, "lending.html", page), "Execute lending form fatal: ")
+}
+
+func devices(w http.ResponseWriter, r *http.Request) {
+	user := getUser(w, r)
+	if !user.Login {
+		permissionDenied(w, r)
+	}
+	rows, err := db.Query(`
+	SELECT * FROM DevicesStatus;
+	`)
+	checkErr(err, "Query fatal: ")
+	type Device struct {
+		ID     string
+		Status bool
+		Uname  string
+	}
+	page := struct {
+		User
+		Devices []Device
+	}{user, []Device{}}
+	for rows.Next() {
+		var device string
+		var status bool
+		var uname sql.NullString
+		var name string
+		if err := rows.Scan(&device, &status, &uname); err != nil {
+			log.Fatal(err)
+		}
+		if !uname.Valid {
+			name = ""
+		} else {
+			name = uname.String
+		}
+		page.Devices = append(page.Devices, Device{device, status, name})
+	}
+	if err := tpl.ExecuteTemplate(w, "devices.html", page); err != nil {
+		log.Fatal(err)
+	}
 }

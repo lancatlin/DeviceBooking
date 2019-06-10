@@ -60,7 +60,7 @@ func main() {
 		initDevices()
 	}
 	initCheck()
-	log.Println("Server runs on http://localhost:8080")
+	log.Println("Server runs on http://localhost:8000")
 	r := mux.NewRouter()
 	r.HandleFunc("/", index)
 	r.Handle("/favicon.ico", http.NotFoundHandler())
@@ -74,8 +74,9 @@ func main() {
 	r.HandleFunc("/bookings/{id:[0-9]+}/records", recordList)
 	r.HandleFunc("/records", newRecord).Methods("POST")
 	r.HandleFunc("/records", handleReturnDevice).Methods("DELETE")
+	r.HandleFunc("/devices", devices)
 	r.HandleFunc("/login", login)
 	r.HandleFunc("/logout", logout)
 	r.HandleFunc("/check", checkPage)
-	checkErr(http.ListenAndServe(":8080", r), "Start server fatal: ")
+	checkErr(http.ListenAndServe(":8000", r), "Start server fatal: ")
 }
