@@ -9,11 +9,13 @@
     <main>
       <form action="/devices" method="get">
         <select name="type" id="">
+          <option value="all" {{if eq .Option "all" }}selected{{end}}>全選</option>
+          {{$option := .Option}}
           {{range $k, $v := .Types}}
-          <option value="{{$k}}">{{$v}}</option>
+          <option value="{{$k}}" {{if eq $option $k }}selected{{end}}>{{$v}}</option>
           {{end}}
         </select>
-        <input type="checkbox" name="Lendout" value="true">
+        <input type="checkbox" name="Lendout" value="true" {{if .Checked}}checked{{end}}>
         <input type="submit" value="查詢">
       </form>
       <table>

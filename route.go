@@ -89,7 +89,9 @@ func devices(w http.ResponseWriter, r *http.Request) {
 		User
 		Devices []Device
 		Types   map[string]string
-	}{user, []Device{}, make(map[string]string)}
+		Option  string
+		Checked bool
+	}{user, []Device{}, make(map[string]string), qType, qLendout}
 	for rows.Next() {
 		var device string
 		var status bool
@@ -104,7 +106,7 @@ func devices(w http.ResponseWriter, r *http.Request) {
 		} else {
 			name = uname.String
 		}
-		if qType != "" && qType != dType {
+		if qType != "" && qType != "all" && qType != dType {
 			continue
 		}
 		if qLendout && !status {
