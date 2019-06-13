@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -45,20 +44,19 @@ func init() {
 	}
 	err = db.Ping()
 	if err != nil {
+		log.Println("Init mode")
+		initMode()
+	}
+}
+
+func initMode() {
+	if err := http.ListenAndServe(":8000", nil); err != nil {
 		log.Fatalln(err)
 	}
 }
 
 func main() {
-	filename := flag.String("init-users", "", "The json file of user's data to init database.")
-	isDeviced := flag.Bool("init-deviced", false, "Whether should program init the devices data")
-	flag.Parse()
-	if *filename != "" {
-		initUsers(*filename)
-	}
-	if *isDeviced {
-		initDevices()
-	}
+
 	initCheck()
 	log.Println("Server runs on http://localhost:8000")
 	r := mux.NewRouter()

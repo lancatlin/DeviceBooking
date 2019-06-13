@@ -156,3 +156,13 @@ func overdue(w http.ResponseWriter, r *http.Request) {
 		log.Fatalln(err)
 	}
 }
+
+func initDBPage(w http.ResponseWriter, r *http.Request) {
+	if db != nil {
+		w.WriteHeader(403)
+		return
+	}
+	if err := tpl.ExecuteTemplate(w, "init-db.html", nil); err != nil {
+		log.Fatalln(err)
+	}
+}
