@@ -67,6 +67,7 @@ func main() {
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 	r.HandleFunc("/bookings/new", bookingForm)
 	r.HandleFunc("/bookings/lending", handleLendingList)
+	r.HandleFunc("/bookings/overdue", overdue)
 	r.HandleFunc("/bookings", bookingList).Methods("GET")
 	r.HandleFunc("/bookings", newBooking).Methods("POST")
 	r.HandleFunc("/bookings/{id:[0-9]+}", bookingPage)

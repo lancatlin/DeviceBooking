@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -119,5 +120,39 @@ func devices(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := tpl.ExecuteTemplate(w, "devices.html", page); err != nil {
 		log.Fatal(err)
+	}
+}
+
+func overdue(w http.ResponseWriter, r *http.Request) {
+	user := getUser(w, r)
+	if !user.Login || user.Type != "Admin" {
+		permissionDenied(w, r)
+		return
+	}
+	rows, err := db.Query(`
+	SELECT B.ID, U.Name, B.LendingTime, B.ReturnTime
+	FROM Bookings B
+	INNER JOIN UnDoneBookings UB
+	ON B.ID = UB.ID
+	INNER JOIN Users U
+	ON B.User = U.ID
+	WHERE Amount > 0 AND ReturnTime < ?;
+	`, time.Now())
+	if err != nil {
+		log.Println(err)
+	}
+	page := struct {
+		User
+		Bookings []Booking
+	}{user, []Booking{}}
+	for rows.Next() {
+		b := Booking{}
+		if err := rows.Scan(&b.ID, &b.UName, &b.From, &b.Until); err != nil {
+			log.Fatalln(err)
+		}
+		page.Bookings = append(page.Bookings, b)
+	}
+	if err := tpl.ExecuteTemplate(w, "overdue.html", page); err != nil {
+		log.Fatalln(err)
 	}
 }

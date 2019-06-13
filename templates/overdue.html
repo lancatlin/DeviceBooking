@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <title>逾期項目</title>
+  </head>
+  <body>
+    {{template "header" .}}
+    <main>
+      <h1>逾期項目列表</h1>
+      <table>
+        <tr>
+          <th>借用人</th>
+          <th>借用時間</th>
+          <th>歸還時間</th>
+        </tr>
+        {{range .Bookings}}
+        <tr>
+          <td>{{.UName}}</td>
+          <td>{{formatTime .From}}</td>
+          <td>{{formatTime .Until}}</td>
+          <td><a href="/bookings/{{.ID}}">詳情</a></td>
+          <td><a href="/bookings/{{.ID}}/records">還入</a></td>
+        </tr>
+        {{end}}
+      </table>
+    </main>
+  </body>
+</html>

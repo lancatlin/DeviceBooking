@@ -160,6 +160,10 @@ func (b *Booking) returnIfNotEnough() (err error) {
 }
 
 func returnLast(t int) (err error) {
+	/*
+		還入已借出預約中，離現在最遠，且包含 t 這個 type 的 records
+		僅歸還有包含該 type 的 records
+	*/
 	row := db.QueryRow(`
 	SELECT B.ID
 	FROM UnDoneBookings UB
@@ -170,7 +174,7 @@ func returnLast(t int) (err error) {
 	WHERE UB.Amount > 0 AND BD.Type = ?
 	ORDER BY LendingTime DESC, ID DESC
 	LIMIT 1;
-	`, itemsType[t])
+	`, t)
 	var bid int64
 	if err = row.Scan(&bid); err == sql.ErrNoRows {
 		return errors.New("No booking found")
@@ -179,8 +183,11 @@ func returnLast(t int) (err error) {
 	}
 	log.Printf("%d will be removed\n", bid)
 	_, err = db.Exec(`
-	DELETE FROM Records WHERE Booking = ?;
-	`, bid)
+	DELETE FROM Records R
+	INNER JOIN Devices D
+	ON R.Device = D.ID
+	WHERE Booking = ? AND Type = ?;
+	`, bid, t)
 	if err != nil {
 		log.Fatalln(err)
 	}
