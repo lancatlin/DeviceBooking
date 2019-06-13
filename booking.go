@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -89,6 +90,8 @@ func bookingForm(w http.ResponseWriter, r *http.Request) {
 
 func (b *Booking) insertBooking(user User) {
 	// insert booking data into database
+	log.Println(b.Devices)
+	b.returnIfNotEnough()
 	result, err := db.Exec(`
 	INSERT INTO Bookings (User, LendingTime, ReturnTime)
 	VALUES (?, ?, ?);
@@ -122,6 +125,66 @@ func (b *Booking) enough(r [5]int) []string {
 		}
 	}
 	return msg
+}
+
+func (b *Booking) returnIfNotEnough() (err error) {
+	/*
+		檢查是否有足夠的館藏量足以借出
+		如果否，代表有提早借出之預約
+		將最晚的預約還入直到足夠為止
+	*/
+	stmt, err := db.Prepare(`
+	SELECT COUNT(1)
+	FROM DevicesStatus
+	WHERE Type = ? AND Status = FALSE;
+	`)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	for i, t := range b.Devices {
+		row := stmt.QueryRow(itemsType[i])
+		var count int
+		if err = row.Scan(&count); err != nil {
+			log.Fatalln(err)
+		}
+		log.Println(count)
+		if count <= t {
+			err = returnLast(i)
+			if err != nil {
+				log.Panic(err)
+			}
+			return b.returnIfNotEnough()
+		}
+	}
+	return nil
+}
+
+func returnLast(t int) (err error) {
+	row := db.QueryRow(`
+	SELECT B.ID
+	FROM UnDoneBookings UB
+	INNER JOIN Bookings B
+	ON UB.ID = B.ID
+	INNER JOIN BookingDevices BD
+	ON B.ID = BD.BID
+	WHERE UB.Amount > 0 AND BD.Type = ?
+	ORDER BY LendingTime DESC, ID DESC
+	LIMIT 1;
+	`, itemsType[t])
+	var bid int64
+	if err = row.Scan(&bid); err == sql.ErrNoRows {
+		return errors.New("No booking found")
+	} else if err != nil {
+		log.Fatalln(err)
+	}
+	log.Printf("%d will be removed\n", bid)
+	_, err = db.Exec(`
+	DELETE FROM Records WHERE Booking = ?;
+	`, bid)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	return nil
 }
 
 func getBookingDevices(id int64) (devices [5]int) {
