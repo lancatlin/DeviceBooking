@@ -1,3 +1,4 @@
 .env
 DeviceBooking
 testData/users.json
+env.json

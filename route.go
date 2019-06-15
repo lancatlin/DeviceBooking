@@ -166,3 +166,23 @@ func initDBPage(w http.ResponseWriter, r *http.Request) {
 		log.Fatalln(err)
 	}
 }
+
+func initUsersPage(w http.ResponseWriter, r *http.Request) {
+	if db == nil {
+		http.Redirect(w, r, "/init/db", 304)
+		return
+	}
+	if err := tpl.ExecuteTemplate(w, "init-users.html", nil); err != nil {
+		log.Fatalln(err)
+	}
+}
+
+func initPage(w http.ResponseWriter, r *http.Request) {
+	if db != nil {
+		w.WriteHeader(403)
+		return
+	}
+	if err := tpl.ExecuteTemplate(w, "init.html", nil); err != nil {
+		log.Fatalln(err)
+	}
+}

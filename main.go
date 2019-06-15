@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -17,6 +18,7 @@ import (
 
 var db *sql.DB
 var tpl *template.Template
+var initMode = false
 
 func init() {
 	log.SetFlags(log.Lshortfile)
@@ -34,29 +36,57 @@ func init() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	user := os.Getenv("DB_USER")
-	password := os.Getenv("DB_PASSWORD")
-	dbName := os.Getenv("DB_NAME")
-	connection := fmt.Sprintf("%s:%s@unix(/var/run/mysqld/mysqld.sock)/%s?parseTime=true", user, password, dbName)
+}
+
+func loadDB() (db *sql.DB, err error) {
+	file, err := os.Open("env.json")
+	if err != nil {
+		return nil, err
+	}
+	dec := json.NewDecoder(file)
+	vars := new(struct {
+		DBName   string
+		User     string
+		Password string
+	})
+	if err := dec.Decode(vars); err != nil {
+		return nil, err
+	}
+	connection := fmt.Sprintf("%s:%s@unix(/var/run/mysqld/mysqld.sock)/%s?parseTime=true", vars.User, vars.Password, vars.DBName)
 	db, err = sql.Open("mysql", connection)
 	if err != nil {
-		log.Fatalln(err)
+		return nil, err
 	}
 	err = db.Ping()
 	if err != nil {
-		log.Println("Init mode")
-		initMode()
+		return nil, err
 	}
+	return db, nil
 }
 
-func initMode() {
-	if err := http.ListenAndServe(":8000", nil); err != nil {
+func handleInitMode() {
+	r := mux.NewRouter()
+	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/init", 303)
+	})
+	r.HandleFunc("/init", initPage)
+	r.HandleFunc("/init/db", initDBPage).Methods("GET")
+	r.HandleFunc("/init/db", handleInitDB).Methods("POST")
+	r.HandleFunc("/init/users", initUsersPage).Methods("GET")
+	r.HandleFunc("/init/users", handleInitUsers).Methods("POST")
+	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
+	if err := http.ListenAndServe(":8000", r); err != nil {
 		log.Fatalln(err)
 	}
 }
 
 func main() {
-
+	var err error
+	if db, err = loadDB(); err != nil {
+		log.Println(err)
+		log.Println("Init mode: server runs on http://localhost:8000/init")
+		handleInitMode()
+	}
 	initCheck()
 	log.Println("Server runs on http://localhost:8000")
 	r := mux.NewRouter()
