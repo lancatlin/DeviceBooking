@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -45,22 +46,41 @@ func importUsers(w http.ResponseWriter, r *http.Request) {
 		permissionDenied(w, r)
 		return
 	}
-	f, h, err := r.FormFile("file")
+	f, _, err := r.FormFile("file")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	log.Println("header: ", h)
 	defer f.Close()
-	initUsers(f)
+	msg := initUsers(f)
+	if len(msg) != 0 {
+		page := struct {
+			User
+			Title   string
+			Content string
+			Target  string
+		}{
+			user,
+			"匯入過程發生錯誤",
+			strings.Join(msg, "<br>"),
+			"<a href='/users'>前一頁</a>",
+		}
+		if err := tpl.ExecuteTemplate(w, "msg.html", page); err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+		return
+	}
 	page := struct {
+		User
 		Title   string
 		Content string
 		Target  string
 	}{
+		user,
 		"匯入使用者資料成功！",
-		"使用者資料已經匯入成功，請重啟伺服器後開始使用",
-		``,
+		"使用者資料已經匯入成功",
+		`<a href='/users'>回到使用者管理</a>`,
 	}
 	if err := tpl.ExecuteTemplate(w, "msg.html", page); err != nil {
 		log.Fatalln(err)
@@ -74,26 +94,26 @@ type userData struct {
 	Type     string
 }
 
-func initUsers(file io.Reader) {
+func initUsers(file io.Reader) (msg []string) {
 	reader := csv.NewReader(file)
 	var users []userData
 	for {
 		record, err := reader.Read()
-		if err != io.EOF {
+		if err == io.EOF {
 			break
 		}
 		if err != nil {
 			log.Fatalln(err)
 		}
 		users = append(users, userData{record[0], record[1], record[2], "Teacher"})
-		log.Println(record)
 	}
-	log.Println(users)
-	for _, user := range users {
+	msg = []string{}
+	for _, user := range users[1:] {
 		if err := user.signUp(); err != nil {
-			log.Fatalln(err)
+			msg = append(msg, err.Error())
 		}
 	}
+	return
 }
 
 func (user *userData) signUp() (err error) {

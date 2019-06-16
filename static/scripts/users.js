@@ -1,6 +1,6 @@
 function setPermission(bt, type) {
   let id = bt.value
-  if (!(type in ["on", "off"])) {
+  if (type != "on" && type != "off") {
     console.log("Fatal: type not on or off", type)
     return 
   }

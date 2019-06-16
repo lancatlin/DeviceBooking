@@ -9,14 +9,14 @@
     {{template "header" .}}
     <main>
       <a href="/static/example.csv">範例檔下載</a>
-      <form action="/users/upload" method="POST">
-        <p>註冊使用者</p><input type="file" name="file" id=""><input type="submit" value="上傳">
+      <form action="/users/upload" method="POST" enctype="multipart/form-data">
+        <p>註冊使用者</p><input type="file" name="file" id="" required><input type="submit" value="上傳">
       </form>
       <form action="/users" method="post">
         <p>單筆建立使用者</p>
-        姓名：<input type="text" name="name"><br>
-        電子郵件：<input type="text" name="email" id=""><br>
-        密碼：<input type="password" name="password" id="">
+        姓名：<input type="text" name="name" required><br>
+        電子郵件：<input type="text" name="email" id="" required><br>
+        密碼：<input type="password" name="password" id="" required>
         <input type="submit" value="註冊">
       </form>
       <table>
