@@ -5,7 +5,7 @@
   </head>
   <body>
     {{template "header" .}}
-    <div>
+    <main>
       <h2>{{formatDate .Date}} {{.Day}}</h2>
       <a href="/bookings?date={{formatDate .Yesterday}}">前一天</a><a href="/bookings?date={{formatDate .Tomorrow}}">下一天</a>
       <form action="/bookings" method="get">
@@ -51,6 +51,6 @@
                 {{end}}
             {{end}}
       </table>
-    </div>
+    </main>
   </body>
 </html>

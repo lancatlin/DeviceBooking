@@ -20,7 +20,7 @@ func getUser(w http.ResponseWriter, r *http.Request) User {
 	FROM Sessions S, Users U 
 	WHERE S.ID = ? AND U.ID = S.User;
 	`, cookie.Value)
-	var uid int
+	var uid int64
 	var uname string
 	var utype string
 	err = row.Scan(&uid, &uname, &utype)

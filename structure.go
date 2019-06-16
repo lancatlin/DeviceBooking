@@ -39,7 +39,7 @@ var typeToIndex = map[string]int{"Student-iPad": 0, "Teacher-iPad": 1, "Chromebo
 
 // User is the structure for template executing
 type User struct {
-	ID       int
+	ID       int64
 	Username string
 	Type     string
 	Login    bool
@@ -64,6 +64,13 @@ type Record struct {
 	Done    bool
 }
 
+// Msg is the structure of the data msg.html need
+type Msg struct {
+	Title   string
+	Content string
+	Target  string
+}
+
 func init() {
 	begin := [...]string{"7h30m", "8h20m", "9h15m", "10h10m", "11h05m", "12h30m", "13h05m", "14h", "14h55m", "15h55m", "16h45m"}
 	end := [11]string{"8h10m", "9h05m", "10h10m", "10h55m", "11h50m", "13h", "13h50m", "14h45m", "15h40m", "16h40m", "17h30m"}
@@ -80,7 +87,7 @@ func init() {
 	}
 }
 
-func newUser(id int, name, utype string) User {
+func newUser(id int64, name, utype string) User {
 	return User{id, name, utype, true, ""}
 }
 

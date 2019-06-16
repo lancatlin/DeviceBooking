@@ -107,5 +107,6 @@ func main() {
 	r.HandleFunc("/users", users).Methods("GET")
 	r.HandleFunc("/users", signUp).Methods("POST")
 	r.HandleFunc("/users/upload", importUsers).Methods("POST")
+	r.HandleFunc("/users/{id:[0-9]+}", setPermission).Methods("PUT")
 	checkErr(http.ListenAndServe(":8000", r), "Start server fatal: ")
 }

@@ -3,12 +3,13 @@
   <head>
     <title>查看預約</title>
     <link rel="stylesheet" href="/static/css/booking.css">
+    <link rel="stylesheet" href="/static/css/style.css">
   </head>
   <body>
-    <div>
-      {{template "header" .}}
+    {{template "header" .}}
+    <main>
       <a href="/check?p={{.Previous}}">上一週</a><a href="/check?p={{.Next}}">下一週</a>
-      <table align="center">
+      <table>
         <tr>
           <th>  </th>
           {{range .Dates}}
@@ -30,6 +31,6 @@
         </tr>
         {{end}}
       </table>
-    </div>
+    </main>
   </body>
 </html>
