@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>使用者管理</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="/static/scripts/users.js"></script>
+  </head>
+  <body>
+    {{template "header" .}}
+    <main>
+      <a href="/static/example.csv">範例檔下載</a>
+      <form action="/users/upload" method="POST">
+        <p>註冊使用者</p><input type="file" name="file" id=""><input type="submit" value="上傳">
+      </form>
+      <form action="/users" method="post">
+        <p>單筆建立使用者</p>
+        姓名：<input type="text" name="name"><br>
+        電子郵件：<input type="text" name="email" id=""><br>
+        密碼：<input type="password" name="password" id="">
+        <input type="submit" value="註冊">
+      </form>
+      <table>
+        <tr>
+          <th>姓名</th>
+          <th>電子郵件</th>
+          <th>權限</th>
+        </tr>
+        {{range .Users}}
+        <tr>
+          <td>{{.Username}}</td>
+          <td>{{.Email}}</td>
+          <td class="type" id="{{.ID}}-type">{{.Type}}</td>
+          <td>
+            {{if eq .Type "Admin"}}
+            <button onclick="setPermission(this, `off`)" value={{.ID}}>移除管理員</button>
+            {{else}}
+            <button onclick="setPermission(this, `on`)" value={{.ID}}>設為管理員</button>
+            {{end}}
+          </td>
+          <td><a href="/users/{{.ID}}/set-password">重設密碼</a></td>
+        </tr>
+        {{end}}
+      </table>
+    </main>
+  </body>
+</html>

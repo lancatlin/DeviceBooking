@@ -1,11 +1,15 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>初始化導覽</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <title>初始化資料庫</title>
   </head>
   <body>
-    <h1>初始化系統</h1>
-    <p>沒有偵測到資料庫，請依據下方導覽開始建立資料庫</p>
-    <a href="/init/db">建立資料庫</a>
+    <h1>初始化資料庫</h1>
+    <form action="/init" method="post">
+      資料庫名稱：<input type="text" name="db-name" id=""><br>
+      admin 密碼：<input type="password" name="password">
+      <input type="submit" value="建立">
+    </form>
   </body>
 </html>

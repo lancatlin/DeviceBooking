@@ -4,17 +4,13 @@ import (
 	"crypto/rand"
 	"database/sql"
 	"encoding/base64"
-	"encoding/csv"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"os"
 	"os/exec"
 	"strconv"
-
-	"golang.org/x/crypto/bcrypt"
 )
 
 func randomPassword() string {
@@ -37,16 +33,26 @@ func handleInitDB(w http.ResponseWriter, r *http.Request) {
 	}
 	dbName := r.FormValue("db-name")
 	dbUser := "app"
-	dbPassword := randomPassword()
+	dbPassword := r.FormValue("password")
 	log.Println("init db")
 	log.Println(dbPassword)
 	err := initDB(dbName, dbUser, dbPassword)
 	if err != nil {
 		log.Println(err)
-		tpl.ExecuteTemplate(w, "init-db.html", err.Error())
+		http.Error(w, err.Error(), 500)
 		return
 	}
 	log.Println("init devices")
+	user := userData{
+		"admin",
+		"",
+		dbPassword,
+		"Admin",
+	}
+	if err := user.signUp(); err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
 	initDevices()
 	page := struct {
 		User
@@ -56,31 +62,7 @@ func handleInitDB(w http.ResponseWriter, r *http.Request) {
 	}{
 		nilUser(),
 		"資料庫建立成功！",
-		"資料庫已建立成功，請匯入使用者",
-		`<a href="/init/users">匯入使用者</a>`,
-	}
-	if err := tpl.ExecuteTemplate(w, "msg.html", page); err != nil {
-		log.Fatalln(err)
-	}
-}
-
-func handleInitUsers(w http.ResponseWriter, r *http.Request) {
-	f, h, err := r.FormFile("file")
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	log.Println("header: ", h)
-	defer f.Close()
-	initUsers(f)
-	page := struct {
-		Title   string
-		Content string
-		Target  string
-	}{
-		"匯入使用者資料成功！",
-		"使用者資料已經匯入成功，請重啟伺服器後開始使用",
-		``,
+		"資料庫已建立成功，重新啟動後即可開始使用", "",
 	}
 	if err := tpl.ExecuteTemplate(w, "msg.html", page); err != nil {
 		log.Fatalln(err)
@@ -114,41 +96,6 @@ func insertData(stmt *sql.Stmt, list []string, t string) {
 	for _, v := range list {
 		_, err := stmt.Exec(v, t)
 		checkErr(err, "Insert Error: ")
-	}
-}
-
-func initUsers(file io.Reader) {
-	type userData struct {
-		Name     string
-		Email    string
-		Password string
-	}
-	reader := csv.NewReader(file)
-	var users []userData
-	for {
-		record, err := reader.Read()
-		if err != io.EOF {
-			break
-		}
-		if err != nil {
-			log.Fatalln(err)
-		}
-		users = append(users, userData{record[0], record[1], record[2]})
-		log.Println(record)
-	}
-	log.Println(users)
-	for _, user := range users {
-		password, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
-		if err != nil {
-			log.Fatal("Password generate error: ", err)
-		}
-		_, err = db.Exec(`
-		INSERT INTO Users (Name, Email, Password)
-		VALUES (?, ?, ?);
-		`, user.Name, user.Email, password)
-		if err != nil {
-			log.Fatalln("Insert fatal: ", err)
-		}
 	}
 }
 

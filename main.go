@@ -69,11 +69,8 @@ func handleInitMode() {
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/init", 303)
 	})
-	r.HandleFunc("/init", initPage)
-	r.HandleFunc("/init/db", initDBPage).Methods("GET")
-	r.HandleFunc("/init/db", handleInitDB).Methods("POST")
-	r.HandleFunc("/init/users", initUsersPage).Methods("GET")
-	r.HandleFunc("/init/users", handleInitUsers).Methods("POST")
+	r.HandleFunc("/init", initDBPage).Methods("GET")
+	r.HandleFunc("/init", handleInitDB).Methods("POST")
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 	if err := http.ListenAndServe(":8000", r); err != nil {
 		log.Fatalln(err)
@@ -107,5 +104,7 @@ func main() {
 	r.HandleFunc("/login", login)
 	r.HandleFunc("/logout", logout)
 	r.HandleFunc("/check", checkPage)
+	r.HandleFunc("/users", users).Methods("GET")
+	r.HandleFunc("/users", signUp).Methods("POST")
 	checkErr(http.ListenAndServe(":8000", r), "Start server fatal: ")
 }

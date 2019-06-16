@@ -43,6 +43,7 @@ type User struct {
 	Username string
 	Type     string
 	Login    bool
+	Email    string
 }
 
 // Booking 紀錄預約資料
@@ -80,7 +81,7 @@ func init() {
 }
 
 func newUser(id int, name, utype string) User {
-	return User{id, name, utype, true}
+	return User{id, name, utype, true, ""}
 }
 
 func nilUser() User {
