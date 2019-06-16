@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"crypto/rand"
 	"database/sql"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -34,8 +36,6 @@ func handleInitDB(w http.ResponseWriter, r *http.Request) {
 	dbName := r.FormValue("db-name")
 	dbUser := "app"
 	dbPassword := r.FormValue("password")
-	log.Println("init db")
-	log.Println(dbPassword)
 	err := initDB(dbName, dbUser, dbPassword)
 	if err != nil {
 		log.Println(err)
@@ -101,11 +101,12 @@ func insertData(stmt *sql.Stmt, list []string, t string) {
 
 func initDB(dbName, dbUser, dbPassword string) (err error) {
 	cmd := exec.Command("./cmd/init-db.sh", dbName, dbUser, dbPassword)
-	cmd.Stderr = os.Stderr
-	cmd.Stdout = os.Stdout
+	var buf bytes.Buffer
+	cmd.Stderr = &buf
+	cmd.Stdout = &buf
 	if err = cmd.Run(); err != nil {
-		log.Println(err.Error())
-		return err
+		log.Println(buf.String())
+		return errors.New(buf.String())
 	}
 	wd, err := os.Getwd()
 	if err != nil {
