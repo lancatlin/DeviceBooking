@@ -225,6 +225,18 @@ func resetPassword(w http.ResponseWriter, r *http.Request) {
 		}
 		if err := bcrypt.CompareHashAndPassword(password, []byte(current)); err != nil {
 			// 原密碼錯誤，不能更改
+			u, err := loadUser(uid)
+			if err != nil {
+				log.Fatal(err)
+			}
+			page := struct {
+				User
+				U     User
+				Error string
+			}{user, u, "密碼錯誤"}
+			if err := tpl.ExecuteTemplate(w, "resetPassword.html", page); err != nil {
+				http.Error(w, err.Error(), 500)
+			}
 			return
 		}
 	}
@@ -242,10 +254,10 @@ func resetPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	affect, _ := result.RowsAffected()
-	if affect == 1 {
+	if affect == 0 {
 		notFound(w, r)
 		return
-	} else {
+	} else if affect != 1 {
 		log.Fatal("Affected not 1: ", affect)
 	}
 	page := struct {

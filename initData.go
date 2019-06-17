@@ -19,7 +19,7 @@ func randomPassword() string {
 	/*
 		To genrate a random password with 16 chars
 	*/
-	chars := make([]byte, 12)
+	chars := make([]byte, 20)
 	rand.Read(chars)
 	return base64.StdEncoding.EncodeToString(chars)
 }
@@ -35,7 +35,8 @@ func handleInitDB(w http.ResponseWriter, r *http.Request) {
 	}
 	dbName := r.FormValue("db-name")
 	dbUser := "app"
-	dbPassword := r.FormValue("password")
+	dbPassword := randomPassword()
+	adminPassword := r.FormValue("password")
 	err := initDB(dbName, dbUser, dbPassword)
 	if err != nil {
 		log.Println(err)
@@ -46,7 +47,7 @@ func handleInitDB(w http.ResponseWriter, r *http.Request) {
 	user := userData{
 		"admin",
 		"",
-		dbPassword,
+		adminPassword,
 		"Admin",
 	}
 	if err := user.signUp(); err != nil {

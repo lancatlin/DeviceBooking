@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"log"
@@ -95,6 +96,21 @@ func nilUser() User {
 	var user User
 	user.Login = false
 	return user
+}
+
+func loadUser(uid int64) (user User, err error) {
+	row := db.QueryRow(`
+	SELECT Name, Type, Email
+	FROM Users WHERE ID = ?;
+	`, uid)
+	user = User{}
+	user.ID = uid
+	if err = row.Scan(&user.Username, &user.Type, &user.Email); err == sql.ErrNoRows {
+		return user, err
+	} else if err != nil {
+		log.Fatal(err)
+	}
+	return user, nil
 }
 
 func datetime(t time.Time) string {

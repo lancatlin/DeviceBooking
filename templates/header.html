@@ -19,6 +19,7 @@
     <div class="right-div">
       {{if .Login}}
       <p>{{.Username}}</p>
+      <a href="/users/{{.ID}}/set-password">更改密碼</a>
       <a href="/logout">登出</a>
       {{else}}
       <a href="/login" id="login-button">登入</a>

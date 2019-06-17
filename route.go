@@ -166,3 +166,38 @@ func initDBPage(w http.ResponseWriter, r *http.Request) {
 		log.Fatalln(err)
 	}
 }
+
+func resetPasswordPage(w http.ResponseWriter, r *http.Request) {
+	uid, err := convertID(mux.Vars(r)["id"])
+	if err != nil {
+		notFound(w, r)
+		return
+	}
+	user := getUser(w, r)
+	if user.Type != "Admin" && user.ID != uid {
+		permissionDenied(w, r)
+		return
+	}
+	u := User{
+		ID: uid,
+	}
+	row := db.QueryRow(`
+	SELECT Name FROM Users WHERE ID = ?;
+	`, uid)
+	if err := row.Scan(&u.Username); err == sql.ErrNoRows {
+		notFound(w, r)
+		return
+	} else if err != nil {
+		log.Fatalln(err)
+	}
+	page := struct {
+		User
+		U     User
+		Error string
+	}{
+		user, u, "",
+	}
+	if err := tpl.ExecuteTemplate(w, "resetPassword.html", page); err != nil {
+		http.Error(w, err.Error(), 500)
+	}
+}
