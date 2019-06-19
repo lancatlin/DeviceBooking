@@ -120,5 +120,6 @@ func main() {
 	r.HandleFunc("/users/{id:[0-9]+}", setPermission).Methods("PUT").Queries("permission", "")
 	r.HandleFunc("/users/{id:[0-9]+}/set-password", resetPassword).Methods("POST")
 	r.HandleFunc("/users/{id:[0-9]+}/set-password", resetPasswordPage).Methods("GET")
+	r.HandleFunc("/doc/{filename}", docs)
 	checkErr(http.ListenAndServe(":8000", r), "Start server fatal: ")
 }
