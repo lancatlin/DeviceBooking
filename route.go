@@ -158,10 +158,6 @@ func overdue(w http.ResponseWriter, r *http.Request) {
 }
 
 func initDBPage(w http.ResponseWriter, r *http.Request) {
-	if db != nil {
-		w.WriteHeader(403)
-		return
-	}
 	if err := tpl.ExecuteTemplate(w, "init.html", nil); err != nil {
 		log.Fatalln(err)
 	}
@@ -174,12 +170,12 @@ func resetPasswordPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	user := getUser(w, r)
-	if user.Type != "Admin" && user.ID != uid {
+	if user.Type != "Admin" && user.UID != uid {
 		permissionDenied(w, r)
 		return
 	}
 	u := User{
-		ID: uid,
+		UID: uid,
 	}
 	row := db.QueryRow(`
 	SELECT Name FROM Users WHERE ID = ?;

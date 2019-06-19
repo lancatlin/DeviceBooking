@@ -95,7 +95,7 @@ func (b *Booking) insertBooking(user User) {
 	result, err := db.Exec(`
 	INSERT INTO Bookings (User, LendingTime, ReturnTime)
 	VALUES (?, ?, ?);
-	`, user.ID, b.From, b.Until)
+	`, user.UID, b.From, b.Until)
 	checkErr(err, "Insert booking value fatal: ")
 	b.ID, err = result.LastInsertId()
 	checkErr(err, "Get last insert ID fatal: ")

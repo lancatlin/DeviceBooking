@@ -37,15 +37,15 @@
           <tr>
             <td>{{.Username}}</td>
             <td>{{.Email}}</td>
-            <td class="type" id="{{.ID}}-type">{{.Type}}</td>
+            <td class="type" id="{{.UID}}-type">{{.Type}}</td>
             <td>
               {{if eq .Type "Admin"}}
-              <button onclick="setPermission(this, `off`)" value={{.ID}}>移除管理員</button>
+              <button onclick="setPermission(this, `off`)" value={{.UID}}>移除管理員</button>
               {{else}}
-              <button onclick="setPermission(this, `on`)" value={{.ID}}>設為管理員</button>
+              <button onclick="setPermission(this, `on`)" value={{.UID}}>設為管理員</button>
               {{end}}
             </td>
-            <td><a href="/users/{{.ID}}/set-password">重設密碼</a></td>
+            <td><a href="/users/{{.UID}}/set-password">重設密碼</a></td>
           </tr>
           {{end}}
         </table>

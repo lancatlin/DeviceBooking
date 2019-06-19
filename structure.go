@@ -40,7 +40,7 @@ var typeToIndex = map[string]int{"Student-iPad": 0, "Teacher-iPad": 1, "Chromebo
 
 // User is the structure for template executing
 type User struct {
-	ID       int64
+	UID      int64
 	Username string
 	Type     string
 	Login    bool
@@ -104,7 +104,7 @@ func loadUser(uid int64) (user User, err error) {
 	FROM Users WHERE ID = ?;
 	`, uid)
 	user = User{}
-	user.ID = uid
+	user.UID = uid
 	if err = row.Scan(&user.Username, &user.Type, &user.Email); err == sql.ErrNoRows {
 		return user, err
 	} else if err != nil {

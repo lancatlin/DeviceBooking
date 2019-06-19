@@ -1,17 +1,12 @@
 package main
 
 import (
-	"bytes"
 	"crypto/rand"
 	"database/sql"
 	"encoding/base64"
-	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
-	"os"
-	"os/exec"
 	"strconv"
 )
 
@@ -24,25 +19,11 @@ func randomPassword() string {
 	return base64.StdEncoding.EncodeToString(chars)
 }
 
-func handleInitDB(w http.ResponseWriter, r *http.Request) {
+func initData(w http.ResponseWriter, r *http.Request) {
 	/*
 		Handle post from /init/db
 	*/
-	if db != nil {
-		// 如果已經有資料庫
-		w.WriteHeader(403)
-		return
-	}
-	dbName := r.FormValue("db-name")
-	dbUser := "app"
-	dbPassword := randomPassword()
 	adminPassword := r.FormValue("password")
-	err := initDB(dbName, dbUser, dbPassword)
-	if err != nil {
-		log.Println(err)
-		http.Error(w, err.Error(), 500)
-		return
-	}
 	log.Println("init devices")
 	user := userData{
 		"admin",
@@ -68,6 +49,7 @@ func handleInitDB(w http.ResponseWriter, r *http.Request) {
 	if err := tpl.ExecuteTemplate(w, "msg.html", page); err != nil {
 		log.Fatalln(err)
 	}
+	log.Fatal("Stop server, please restart")
 }
 
 func initDevices() {
@@ -98,39 +80,6 @@ func insertData(stmt *sql.Stmt, list []string, t string) {
 		_, err := stmt.Exec(v, t)
 		checkErr(err, "Insert Error: ")
 	}
-}
-
-func initDB(dbName, dbUser, dbPassword string) (err error) {
-	cmd := exec.Command("./cmd/init-db.sh", dbName, dbUser, dbPassword)
-	var buf bytes.Buffer
-	cmd.Stderr = &buf
-	cmd.Stdout = &buf
-	if err = cmd.Run(); err != nil {
-		log.Println(buf.String())
-		return errors.New(buf.String())
-	}
-	wd, err := os.Getwd()
-	if err != nil {
-		return err
-	}
-	file, err := os.Create(wd + "/env.json")
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-	data := struct {
-		DBName   string
-		User     string
-		Password string
-	}{dbName, dbUser, dbPassword}
-	enc := json.NewEncoder(file)
-	if err := enc.Encode(data); err != nil {
-		return err
-	}
-	if db, err = loadDB(); err != nil {
-		return err
-	}
-	return nil
 }
 
 func execSQLCommand(db *sql.DB, command string, args ...interface{}) {

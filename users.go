@@ -28,7 +28,7 @@ func users(w http.ResponseWriter, r *http.Request) {
 	users := []User{}
 	for rows.Next() {
 		u := User{}
-		if err := rows.Scan(&u.ID, &u.Username, &u.Email, &u.Type); err != nil {
+		if err := rows.Scan(&u.UID, &u.Username, &u.Email, &u.Type); err != nil {
 			log.Fatalln(err)
 		}
 		users = append(users, u)
@@ -113,6 +113,7 @@ func initUsers(file io.Reader) (msg []string) {
 	for _, user := range users[1:] {
 		if err := user.signUp(); err != nil {
 			msg = append(msg, err.Error())
+			log.Println(err.Error())
 		}
 	}
 	return
@@ -208,13 +209,13 @@ func resetPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	user := getUser(w, r)
-	if user.Type != "Admin" && user.ID != uid {
+	if user.Type != "Admin" && user.UID != uid {
 		permissionDenied(w, r)
 		return
 	}
 	current := r.FormValue("current-password")
 	pw := r.FormValue("password")
-	if user.ID == uid {
+	if user.UID == uid {
 		row := db.QueryRow(`
 		SELECT Password FROM Users
 		WHERE ID = ?;

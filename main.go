@@ -2,11 +2,12 @@ package main
 
 import (
 	"database/sql"
-	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"text/template"
 	"time"
 
@@ -19,6 +20,10 @@ import (
 var db *sql.DB
 var tpl *template.Template
 var initMode = false
+
+var dbName string
+var dbUser string
+var dbPassword string
 
 func init() {
 	log.SetFlags(log.Lshortfile)
@@ -38,30 +43,35 @@ func init() {
 	}
 }
 
-func loadDB() (db *sql.DB, err error) {
-	file, err := os.Open("env.json")
-	if err != nil {
-		return nil, err
-	}
-	dec := json.NewDecoder(file)
-	vars := new(struct {
-		DBName   string
-		User     string
-		Password string
-	})
-	if err := dec.Decode(vars); err != nil {
-		return nil, err
-	}
-	connection := fmt.Sprintf("%s:%s@unix(/var/run/mysqld/mysqld.sock)/%s?parseTime=true", vars.User, vars.Password, vars.DBName)
+func loadDB() (err error) {
+	dbName = os.Getenv("DB_NAME")
+	dbUser = os.Getenv("DB_USER")
+	dbPassword = os.Getenv("DB_PASSWORD")
+	connection := fmt.Sprintf("%s:%s@tcp(mariadb)/%s?parseTime=true", dbUser, dbPassword, dbName)
 	db, err = sql.Open("mysql", connection)
 	if err != nil {
-		return nil, err
+		log.Fatalln(err)
 	}
 	err = db.Ping()
 	if err != nil {
-		return nil, err
+		log.Fatalln(err)
 	}
-	return db, nil
+	row := db.QueryRow(`
+	SELECT ID FROM Users WHERE Name = 'Admin';
+	`)
+	var id int64
+	if err = row.Scan(&id); err == sql.ErrNoRows {
+		return errors.New("Admin hasn't set up yet")
+	} else if err != nil {
+		cmd := exec.Command("mysql", "-h", "mariadb", "-u", dbUser, "--password="+dbPassword, "-D", dbName, "-e", "source ./sql-command/init.sql")
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		if err = cmd.Run(); err != nil {
+			log.Fatalln(err)
+		}
+		return errors.New("wait for init")
+	}
+	return nil
 }
 
 func handleInitMode() {
@@ -70,7 +80,7 @@ func handleInitMode() {
 		http.Redirect(w, r, "/init", 303)
 	})
 	r.HandleFunc("/init", initDBPage).Methods("GET")
-	r.HandleFunc("/init", handleInitDB).Methods("POST")
+	r.HandleFunc("/init", initData).Methods("POST")
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 	if err := http.ListenAndServe(":8000", r); err != nil {
 		log.Fatalln(err)
@@ -79,7 +89,7 @@ func handleInitMode() {
 
 func main() {
 	var err error
-	if db, err = loadDB(); err != nil {
+	if err = loadDB(); err != nil {
 		log.Println(err)
 		log.Println("Init mode: server runs on http://localhost:8000/init")
 		handleInitMode()
