@@ -23,9 +23,16 @@ var initMode = false
 var dbName string
 var dbUser string
 var dbPassword string
+var dbHost string
+var port string
 
 func init() {
 	log.SetFlags(log.Lshortfile)
+	dbName = os.Getenv("DB_NAME")
+	dbUser = os.Getenv("DB_USER")
+	dbPassword = os.Getenv("DB_PASSWORD")
+	dbHost = os.Getenv("DB_HOST")
+	port = os.Getenv("PORT")
 	var err error
 	funcmap := template.FuncMap{
 		"formatDuration": formatDuration,
@@ -43,10 +50,8 @@ func init() {
 }
 
 func loadDB() (err error) {
-	dbName = os.Getenv("DB_NAME")
-	dbUser = os.Getenv("DB_USER")
-	dbPassword = os.Getenv("DB_PASSWORD")
-	connection := fmt.Sprintf("%s:%s@tcp(mariadb)/%s?parseTime=true", dbUser, dbPassword, dbName)
+	connection := fmt.Sprintf("%s:%s@tcp(%s)/%s?parseTime=true", dbUser, dbPassword, dbHost, dbName)
+	i := 0
 	for {
 		db, err = sql.Open("mysql", connection)
 		if err == nil {
@@ -55,6 +60,12 @@ func loadDB() (err error) {
 				break
 			}
 		}
+		if i == 10 {
+			log.Fatalln("Cannot connect to database")
+		}
+		log.Println(err)
+		time.Sleep(1 * time.Second)
+		i++
 	}
 	row := db.QueryRow(`
 	SELECT ID FROM Users WHERE Name = 'Admin';
@@ -103,8 +114,8 @@ func main() {
 	r.HandleFunc("/doc/{filename}", docs)
 	r.HandleFunc("/init", initPage).Methods("GET")
 	r.HandleFunc("/init", initAdmin).Methods("POST")
-	log.Println("Server runs on https://localhost:" + os.Getenv("PORT"))
-	if err := http.ListenAndServeTLS(":443", "cert.pem", "key.pem", r); err != nil {
+	log.Println("Server runs on https://localhost:" + port)
+	if err := http.ListenAndServeTLS(":"+port, "cert.pem", "key.pem", r); err != nil {
 		log.Fatalln(err)
 	}
 }

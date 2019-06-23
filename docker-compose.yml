@@ -1,4 +1,4 @@
-version: "3"
+version: "2.1"
 
 services:
     app:
@@ -7,9 +7,13 @@ services:
         environment:
             PORT: ${PORT}
         depends_on:
-            - mariadb
+            mariadb:
+                condition: service_healthy
         ports: 
-            - "${PORT}:443"
+            - "${PORT}:${PORT}"
+        volumes:
+            - "/etc/timezone:/etc/timezone:ro"
+            - "/etc/localtime:/etc/localtime:ro"
     
     mariadb:
         build: 
@@ -22,6 +26,13 @@ services:
         command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
         volumes:
             - "mariadb-data:/var/lib/mysql"
+        healthcheck:
+            test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+            timeout: 5s
+            retries: 10
+        volumes:
+            - "/etc/timezone:/etc/timezone:ro"
+            - "/etc/localtime:/etc/localtime:ro"
 
 volumes:
     mariadb-data:

@@ -4,20 +4,28 @@ Focus Junior High Device Booking System
 ---
 > 一個 iPad、Chromebook 等電子產品的教師用預約系統。
 
-## Feature
-教師：  
-* 預約
-* 查看各節課剩餘、預約紀錄
+歡迎使用電子設備預約系統 DeviceBooking。
 
-管理員：  
-* 借出設備
-* 還入設備
-* 接收逾期通知
-* 包含所有教師功能
+## 功能 Feature
+點擊連結可看教學文檔
+
+- [預約](/doc/booking) 新增一項預約
+- [查看剩餘](/doc/check) 查看一週內各節課所剩餘的數量
+- [查看預約](/doc/bookings) 查看一天中的所有預約項目
+
+### 管理員限定功能
+- [借出](/doc/lendout) 借出設備
+- [還入](/doc/return) 還入設備
+- [借出中預約](/doc/lending) 查看正在借出中的預約以及借用人
+- [設備列表](/doc/devices) 查看設備列表以及各設備狀態
+- [逾期項目列表](/doc/overdue) 逾期的預約將顯示於此
+- [使用者管理](/doc/users) 顯示使用者列表，設定管理員以及變更使用者密碼，支持 CSV 使用者資料匯入
 
 ## 技術實現
-Web 界面  
-* 後端 Golang 
-* 資料庫 MariaDB
+- Web 界面
+- 後端 Golang   
+- 資料庫 MariaDB  
+- 部屬 Docker  
+
 
 

@@ -3,11 +3,13 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
 	"time"
 
+	"github.com/gomarkdown/markdown"
 	"github.com/gorilla/mux"
 )
 
@@ -17,7 +19,20 @@ func index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	user := getUser(w, r)
-	tpl.ExecuteTemplate(w, "index.html", user)
+	filename := "README.md"
+	file, err := ioutil.ReadFile(filename)
+	if err != nil {
+		notFound(w, r)
+		return
+	}
+	html := markdown.ToHTML(file, nil, nil)
+	page := struct {
+		User
+		Msg
+	}{user, Msg{"", string(html), ""}}
+	if err := tpl.ExecuteTemplate(w, "msg.html", page); err != nil {
+		http.Error(w, err.Error(), 500)
+	}
 }
 
 func notFound(w http.ResponseWriter, r *http.Request) {
