@@ -8,6 +8,9 @@ function returnRecord(button) {
         button.disabled = true 
         button.value = ""
         break 
+      case 201:
+        window.location = document.getElementById("booking-link").href
+        break
       case 404:
         alert("找不到設備：" + dID)
         break

@@ -19,7 +19,7 @@ func randomPassword() string {
 	return base64.StdEncoding.EncodeToString(chars)
 }
 
-func initData(w http.ResponseWriter, r *http.Request) {
+func initAdmin(w http.ResponseWriter, r *http.Request) {
 	/*
 		Handle post from /init/db
 	*/
@@ -35,7 +35,6 @@ func initData(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 500)
 		return
 	}
-	initDevices()
 	page := struct {
 		User
 		Title   string

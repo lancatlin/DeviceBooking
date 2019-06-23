@@ -7,7 +7,17 @@ import (
 	"net/http"
 )
 
-func returnDevice(dID string) error {
+func returnDevice(dID string) (count int, err error) {
+	row := db.QueryRow(`
+	SELECT COUNT(1) FROM UnDoneRecords
+	WHERE Booking = (SELECT Booking FROM UnDoneRecords WHERE Device = ?);
+	`, dID)
+	if err = row.Scan(&count); err != nil {
+		return 0, err
+	}
+	if count == 0 {
+		return 0, errors.New("record not found")
+	}
 	result, err := db.Exec(`
 		UPDATE Records
 		SET LentUntil = CURRENT_TIMESTAMP()
@@ -19,11 +29,11 @@ func returnDevice(dID string) error {
 	if rowNum, err := result.RowsAffected(); err != nil {
 		log.Fatalln(err)
 	} else if rowNum == 0 {
-		return errors.New("Record Not Found")
+		return 0, errors.New("Record Not Found")
 	} else if rowNum > 1 {
-		return fmt.Errorf("Return device fatal: RowsAffected is %d", rowNum)
+		return 0, fmt.Errorf("Return device fatal: RowsAffected is %d", rowNum)
 	}
-	return nil
+	return count - 1, nil
 }
 
 func handleReturnDevice(w http.ResponseWriter, r *http.Request) {
@@ -33,12 +43,16 @@ func handleReturnDevice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	dID := r.FormValue("device")
-	if err := returnDevice(dID); err != nil && err.Error() == "Record Not Found" {
+	count, err := returnDevice(dID)
+	if err != nil && err.Error() == "Record Not Found" {
 		w.WriteHeader(404)
 		return
 	} else if err != nil {
 		w.WriteHeader(403)
 		return
+	}
+	if count == 0 {
+		w.WriteHeader(201)
 	}
 }
 
@@ -48,9 +62,10 @@ func getLendingList() (result []Booking, err error) {
 	*/
 	result = []Booking{}
 	rows, err := db.Query(`
-	SELECT ID
-	FROM UnDoneBookings
-	WHERE Amount != 0;
+	SELECT UB.ID
+	FROM UnDoneBookings UB, Bookings B
+	WHERE UB.ID = B.ID AND Amount != 0
+	ORDER BY LendingTime;
 	`)
 	if err != nil {
 		log.Fatalln(err)

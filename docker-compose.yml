@@ -7,18 +7,20 @@ services:
         depends_on:
             - mariadb
         ports: 
-            - "8000:8000"
-        volumes:
-            - .:/app
-        command: sh -c "while true ;do sleep 20; done"
+            - "8443:443"
     
     mariadb:
-        image: "mariadb:latest"
+        build: mariadb/.
         restart: always
         environment:
             MYSQL_DATABASE: ${DB_NAME}
             MYSQL_USER: ${DB_USER}
             MYSQL_PASSWORD: ${DB_PASSWORD}
             MYSQL_RANDOM_ROOT_PASSWORD: "yes"
-        command: mysqld --character-set-server=utf8 --collation-server=utf8_general_ci
+        volumes:
+            - "mariadb-data:/var/lib/mysql"
+        command: mysql -D ${DB_NAME} -e "SOURCE ./init.sql"
 
+volumes:
+    mariadb-data:
+        driver: local

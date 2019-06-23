@@ -9,6 +9,7 @@
     {{template "header" .}}
     <main>
       <h1>{{.Booking.ID}} 借出設備列表</h1>
+      <a href="/bookings/{{.Booking.ID}}" id="booking-link">詳細資料</a><br>
       {{$login := .Login}}
       {{$type := .Type}}
       <button id="return-all" onclick="returnAll()">一鍵歸還</button>

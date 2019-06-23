@@ -22,7 +22,7 @@ function newRecord() {
           document.getElementById("devices-list").appendChild(device)
           document.getElementById("input-entry").value = ""
           if (obj["done"]) {
-            window.location = "/bookings/" + bid + "/records"
+            window.location = "/bookings/" + bid 
           }
           break
 

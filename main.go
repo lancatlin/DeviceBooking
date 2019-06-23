@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"os/exec"
 	"text/template"
 	"time"
 
@@ -63,39 +62,20 @@ func loadDB() (err error) {
 	if err = row.Scan(&id); err == sql.ErrNoRows {
 		return errors.New("Admin hasn't set up yet")
 	} else if err != nil {
-		cmd := exec.Command("mysql", "-h", "mariadb", "-u", dbUser, "--password="+dbPassword, "-D", dbName, "-e", "source ./sql-command/init.sql")
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		if err = cmd.Run(); err != nil {
-			log.Fatalln(err)
-		}
-		return errors.New("wait for init")
+		log.Fatalln("Database didn't set up.")
 	}
 	return nil
-}
-
-func handleInitMode() {
-	r := mux.NewRouter()
-	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, "/init", 303)
-	})
-	r.HandleFunc("/init", initDBPage).Methods("GET")
-	r.HandleFunc("/init", initData).Methods("POST")
-	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
-	if err := http.ListenAndServe(":8000", r); err != nil {
-		log.Fatalln(err)
-	}
 }
 
 func main() {
 	var err error
 	if err = loadDB(); err != nil {
 		log.Println(err)
-		log.Println("Init mode: server runs on http://localhost:8000/init")
-		handleInitMode()
+		log.Println("Init mode: server runs on https://localhost:8443/init")
+		initMode = true
 	}
 	initCheck()
-	log.Println("Server runs on http://localhost:8000")
+	log.Println("Server runs on https://localhost:8443")
 	r := mux.NewRouter()
 	r.HandleFunc("/", index)
 	r.Handle("/favicon.ico", http.NotFoundHandler())
@@ -121,5 +101,9 @@ func main() {
 	r.HandleFunc("/users/{id:[0-9]+}/set-password", resetPassword).Methods("POST")
 	r.HandleFunc("/users/{id:[0-9]+}/set-password", resetPasswordPage).Methods("GET")
 	r.HandleFunc("/doc/{filename}", docs)
-	checkErr(http.ListenAndServe(":8000", r), "Start server fatal: ")
+	r.HandleFunc("/init", initPage).Methods("GET")
+	r.HandleFunc("/init", initAdmin).Methods("POST")
+	if err := http.ListenAndServeTLS(":443", "cert.pem", "key.pem", r); err != nil {
+		log.Fatalln(err)
+	}
 }

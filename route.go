@@ -12,6 +12,10 @@ import (
 )
 
 func index(w http.ResponseWriter, r *http.Request) {
+	if initMode {
+		http.Redirect(w, r, "/init", 303)
+		return
+	}
 	user := getUser(w, r)
 	tpl.ExecuteTemplate(w, "index.html", user)
 }
@@ -157,7 +161,7 @@ func overdue(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func initDBPage(w http.ResponseWriter, r *http.Request) {
+func initPage(w http.ResponseWriter, r *http.Request) {
 	if err := tpl.ExecuteTemplate(w, "init.html", nil); err != nil {
 		log.Fatalln(err)
 	}
