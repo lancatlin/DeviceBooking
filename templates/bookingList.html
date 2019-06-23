@@ -24,6 +24,7 @@
             <th>狀態</th>
             <th></th>
             </tr>
+            {{$type := .User.Type}}
             {{range .Classes}}
             <tr>
                 <td>{{.Class}}</td>
@@ -41,11 +42,13 @@
                         {{end}}
                     <td><a href="/bookings/{{.ID}}">查看</a></td>
                     <td>{{.Status}}</td>
-                    {{if eq .Status "可借出"}}
-                    <td><a href="/bookings/{{.ID}}/lend">借出</a></td>
-                    {{end}}
-                    {{if eq .Status "借出中"}}
-                    <td><a href="/bookings/{{.ID}}/records">還入</a></td>
+                    {{if eq $type "Admin"}}
+                      {{if eq .Status "可借出"}}
+                      <td><a href="/bookings/{{.ID}}/lend">借出</a></td>
+                      {{end}}
+                      {{if eq .Status "借出中"}}
+                      <td><a href="/bookings/{{.ID}}/records">還入</a></td>
+                      {{end}}
                     {{end}}
                 </tr>
                 {{end}}

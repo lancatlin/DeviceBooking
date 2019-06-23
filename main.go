@@ -47,13 +47,14 @@ func loadDB() (err error) {
 	dbUser = os.Getenv("DB_USER")
 	dbPassword = os.Getenv("DB_PASSWORD")
 	connection := fmt.Sprintf("%s:%s@tcp(mariadb)/%s?parseTime=true", dbUser, dbPassword, dbName)
-	db, err = sql.Open("mysql", connection)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	err = db.Ping()
-	if err != nil {
-		log.Fatalln(err)
+	for {
+		db, err = sql.Open("mysql", connection)
+		if err == nil {
+			err = db.Ping()
+			if err == nil {
+				break
+			}
+		}
 	}
 	row := db.QueryRow(`
 	SELECT ID FROM Users WHERE Name = 'Admin';
@@ -70,12 +71,11 @@ func loadDB() (err error) {
 func main() {
 	var err error
 	if err = loadDB(); err != nil {
-		log.Println(err)
-		log.Println("Init mode: server runs on https://localhost:8443/init")
+		log.Print("Init mode: ")
 		initMode = true
 	}
+	defer db.Close()
 	initCheck()
-	log.Println("Server runs on https://localhost:8443")
 	r := mux.NewRouter()
 	r.HandleFunc("/", index)
 	r.Handle("/favicon.ico", http.NotFoundHandler())
@@ -103,6 +103,7 @@ func main() {
 	r.HandleFunc("/doc/{filename}", docs)
 	r.HandleFunc("/init", initPage).Methods("GET")
 	r.HandleFunc("/init", initAdmin).Methods("POST")
+	log.Println("Server runs on https://localhost:" + os.Getenv("PORT"))
 	if err := http.ListenAndServeTLS(":443", "cert.pem", "key.pem", r); err != nil {
 		log.Fatalln(err)
 	}

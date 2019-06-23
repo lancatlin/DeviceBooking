@@ -24,7 +24,7 @@ func initAdmin(w http.ResponseWriter, r *http.Request) {
 		Handle post from /init/db
 	*/
 	adminPassword := r.FormValue("password")
-	log.Println("init devices")
+	log.Println("init admin")
 	user := userData{
 		"admin",
 		"",
@@ -43,12 +43,12 @@ func initAdmin(w http.ResponseWriter, r *http.Request) {
 	}{
 		nilUser(),
 		"資料庫建立成功！",
-		"資料庫已建立成功，重新啟動後即可開始使用", "",
+		"資料庫建立成功，請登入後開始使用", "",
 	}
+	initMode = false
 	if err := tpl.ExecuteTemplate(w, "msg.html", page); err != nil {
 		log.Fatalln(err)
 	}
-	log.Fatal("Stop server, please restart")
 }
 
 func initDevices() {

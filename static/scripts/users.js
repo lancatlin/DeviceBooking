@@ -17,8 +17,11 @@ function setPermission(bt, type) {
           }
           bt.disabled = true
           break
-        case 403:
+        case 401:
           alert("您沒有權限做此動作！")
+          break
+        case 403:
+          alert("不可取消 Admin 帳戶")
           break
         case 404:
           alert("找不到該使用者")

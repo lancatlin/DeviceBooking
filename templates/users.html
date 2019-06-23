@@ -40,7 +40,7 @@
             <td class="type" id="{{.UID}}-type">{{.Type}}</td>
             <td>
               {{if eq .Type "Admin"}}
-              <button onclick="setPermission(this, `off`)" value={{.UID}}>移除管理員</button>
+              <button onclick="setPermission(this, `off`)" value={{.UID}} {{if eq .UID 1}}disabled{{end}}>移除管理員</button>
               {{else}}
               <button onclick="setPermission(this, `on`)" value={{.UID}}>設為管理員</button>
               {{end}}

@@ -68,7 +68,9 @@ func bookingList(w http.ResponseWriter, r *http.Request) {
 		}
 		page.Classes = append(page.Classes, thisClass)
 	}
-	checkErr(tpl.ExecuteTemplate(w, "bookingList.html", page), "Template execute fatal: ")
+	if err := tpl.ExecuteTemplate(w, "bookingList.html", page); err != nil {
+		http.Error(w, err.Error(), 500)
+	}
 }
 
 func bookingPage(w http.ResponseWriter, r *http.Request) {

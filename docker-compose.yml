@@ -4,18 +4,25 @@ services:
     app:
         build: .
         restart: always
+        environment:
+            PORT: ${PORT}
         depends_on:
             - mariadb
         ports: 
-            - "8443:443"
+            - "${PORT}:443"
     
     mariadb:
-        build: mariadb/.
+        build: 
+            context: mariadb/.
+            args:
+                DB_NAME: ${DB_NAME}
+                DB_USER: ${DB_USER}
+                DB_PASSWORD: ${DB_PASSWORD}
         restart: always
-        #command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
-        environment:
-            DB_NAME: ${DB_NAME}
-            DB_USER: ${DB_USER}
-            DB_PASSWORD: ${DB_PASSWORD}
-        # volumes:
-            # - "mariadb-data:/var/lib/mysql"
+        command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+        volumes:
+            - "mariadb-data:/var/lib/mysql"
+
+volumes:
+    mariadb-data:
+        driver: local

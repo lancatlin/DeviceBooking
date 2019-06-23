@@ -164,10 +164,15 @@ func signUp(w http.ResponseWriter, r *http.Request) {
 func setPermission(w http.ResponseWriter, r *http.Request) {
 	user := getUser(w, r)
 	if user.Type != "Admin" {
-		w.WriteHeader(403)
+		w.WriteHeader(401)
 		return
 	}
 	uid := mux.Vars(r)["id"]
+	if uid == "1" {
+		// account admin
+		w.WriteHeader(403)
+		return
+	}
 	t := r.FormValue("permission")
 	var uType string
 	if t == "on" {
