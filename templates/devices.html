@@ -7,6 +7,19 @@
   <body>
     {{template "header" .}}
     <main>
+      <div>
+        <h2>上傳設備列表</h2>
+        <a href="/static/example-devices.csv">設備列表範例檔</a>
+        <form action="/devices/upload" method="POST">
+          上傳檔案：<input type="file" name="file" id=""><br>
+          覆蓋：<input type="checkbox" name="override" id=""><br>
+          <input type="submit" value="上傳">
+        </form>
+        <h2>單筆添加</h2>
+        <form action="/devices" method="post">
+          
+        </form>
+      </div>
       <form action="/devices" method="get">
         <select name="type" id="">
           <option value="all" {{if eq .Option "all" }}selected{{end}}>全選</option>
