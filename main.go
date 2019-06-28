@@ -114,8 +114,8 @@ func main() {
 	r.HandleFunc("/doc/{filename}", docs)
 	r.HandleFunc("/init", initPage).Methods("GET")
 	r.HandleFunc("/init", initAdmin).Methods("POST")
-	log.Println("Server runs on https://localhost:" + port)
-	if err := http.ListenAndServeTLS(":"+port, "cert.pem", "key.pem", r); err != nil {
+	log.Println("Server runs on http://localhost:" + port)
+	if err := http.ListenAndServe(":"+port, r); err != nil {
 		log.Fatalln(err)
 	}
 }
