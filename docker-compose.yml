@@ -2,11 +2,10 @@ version: "2.1"
 
 services:
     app:
-        build: .
-        restart: always
-        #network_mode: host
-        environment:
-            PORT: ${PORT}
+        image: golang:latest
+        working_dir: /app
+        command: go run .
+        restart: "no"
         depends_on:
             mariadb:
                 condition: service_healthy
@@ -17,24 +16,23 @@ services:
             - "/etc/localtime:/etc/localtime:ro"
 
     mariadb:
-        image: mariadb
-        #network_mode: host
-        restart: always
+        image: mysql:latest
+        restart: "no"
         environment:
             MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+            MYSQL_RANDOM_ROOT_PASSWORD: "yes"
             MYSQL_USER: ${DB_USER}
             MYSQL_PASSWORD: ${DB_PASSWORD}
             MYSQL_DATABASE: ${DB_NAME}
-        command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
-        volumes:
-            - "mariadb-data:/var/lib/mysql"
+        #command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
         healthcheck:
             test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
             timeout: 5s
             retries: 10
         volumes:
-            - "./mariadb/init.sh:/docker-entrypoint-initdb.d/init.sh:ro"
-            - "./mariadb/init.sql:/init.sql:ro"
+            - "mariadb-data:/var/lib/mysql"
+            - "./mariadb/init.sh:/docker-entrypoint-initdb.d/init.sh:rw"
+            - "./mariadb/init.sql:/init.sql:rw"
             - "/etc/localtime:/etc/localtime:ro"
 
 volumes:
