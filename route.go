@@ -95,7 +95,8 @@ func devices(w http.ResponseWriter, r *http.Request) {
 		permissionDenied(w, r)
 	}
 	rows, err := db.Query(`
-	SELECT * FROM DevicesStatus;
+	SELECT * FROM DevicesStatus
+	ORDER BY ID
 	`)
 	if err != nil {
 		log.Fatalln(err)
@@ -104,6 +105,7 @@ func devices(w http.ResponseWriter, r *http.Request) {
 		ID     string
 		Status bool
 		Uname  string
+		Type   string
 	}
 	page := struct {
 		User
@@ -132,7 +134,7 @@ func devices(w http.ResponseWriter, r *http.Request) {
 		if qLendout && !status {
 			continue
 		}
-		page.Devices = append(page.Devices, Device{device, status, name})
+		page.Devices = append(page.Devices, Device{device, status, name, dType})
 	}
 	for i := range itemsType {
 		page.Types[itemsType[i]] = itemsName[i]

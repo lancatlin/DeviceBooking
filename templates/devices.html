@@ -21,12 +21,14 @@
       <table>
         <tr>
           <th>設備</th>
+          <th>類別</th>
           <th>狀態</th>
           <th>借用人</th>
         </tr>
         {{range .Devices}}
         <tr>
           <td>{{.ID}}</td>
+          <td>{{.Type}}</td>
           <td>{{if .Status}}借出中{{else}}館內{{end}}</td>
           <td>{{.Uname}}</td>
         </tr>

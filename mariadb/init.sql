@@ -62,11 +62,11 @@ ON B.ID = R.Booking
 GROUP BY ID;
 
 CREATE OR REPLACE VIEW DevicesStatus AS 
-SELECT D.ID, COUNT(R.Device) AS Status, U.Name, D.Type
+SELECT D.ID, Device IS NOT NULL AS Status, Name, D.Type
 FROM Devices D
 LEFT JOIN UnDoneRecords R
 ON D.ID = R.Device
 LEFT JOIN Bookings B
-ON B.ID = R.Booking 
+ON B.ID = Booking 
 LEFT JOIN Users U
-ON U.ID = B.User 
+ON U.ID = User;
