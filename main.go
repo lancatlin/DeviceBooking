@@ -64,7 +64,7 @@ func loadDB() (err error) {
 			log.Fatalln("Cannot connect to database")
 		}
 		log.Println(err)
-		time.Sleep(1 * time.Second)
+		time.Sleep(10 * time.Second)
 		i++
 	}
 	row := db.QueryRow(`

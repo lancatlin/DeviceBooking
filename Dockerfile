@@ -1,3 +1,3 @@
 FROM golang:latest
 WORKDIR /app
-CMD ./app
+CMD go run .
