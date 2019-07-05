@@ -4,7 +4,7 @@ services:
     app:
         build: .
         restart: always
-        network_mode: host
+        #network_mode: host
         environment:
             PORT: ${PORT}
         depends_on:
@@ -18,7 +18,7 @@ services:
 
     mariadb:
         image: mariadb
-        network_mode: host
+        #network_mode: host
         restart: always
         environment:
             MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
