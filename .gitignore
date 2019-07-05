@@ -4,3 +4,4 @@ testData/users.json
 env.json
 cert.pem
 key.pem
+app
