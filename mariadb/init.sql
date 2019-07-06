@@ -6,6 +6,13 @@ CREATE TABLE IF NOT EXISTS Users (
   Password BLOB NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS DeviceTypes {
+  ID INT PRIMARY KEY AUTO_INCREMENT,
+  TypeName VARCHAR(32) UNIQUE NOT NULL,
+  Prefix VARCHAR(10) UNIQUE NOT NULL,
+
+}
+
 CREATE TABLE IF NOT EXISTS Devices (
   ID VARCHAR(8) PRIMARY KEY,
   Type ENUM('Student-iPad', 'Teacher-iPad', 'Chromebook', 'WAP', 'WirelessProjector') NOT NULL,
