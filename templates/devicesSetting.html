@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="/static/css/style.css">
+        <title>管理設備</title>
+        <script src="/static/scripts/devices-setting.js"></script>
+    </head>
+    <body>
+        {{template "header"}}
+        <main>
+            <h1>管理設備</h1>
+            <div>
+                <h3>新增設備類別</h3>
+                <form action="/devices" method="POST">
+                    類別名稱：<input type="text" name="type-name"><br>
+                    前綴：<input type="text" name="type-prefix" id=""><br>
+                    數字長度：<input type="number" name="length" value="3"><br>
+                    數量：<input type="number" name="amount" id=""><br>
+                    <input type="submit" value="新增">
+                </form>
+            </div>
+            <div>
+                <h3>類別列表</h3>
+                <table>
+                    <tr>
+                        <th>名稱</th>
+                        <th>數量</th>
+                    </tr>
+                    {{range .DeviceTypes}}
+                    <tr>
+                        <td>{{.TypeName}}</td>
+                        <td>{{.Amount}}</td>
+                        <td><button onclick="newDevices(this)" value="{{.TypeID}}">新增設備</button></td>
+                    </tr>
+                    {{end}}
+                </table>
+            </div>
+        </main>
+        {{template "footer"}}
+    </body>
+</html>

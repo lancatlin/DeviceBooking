@@ -1,0 +1,13 @@
+footer {
+    background-color:#6c7e9aff;
+    padding: 10px;
+}
+footer p {
+    color: white;
+    font-size: 12px;
+    font-family: 'sans';
+}
+
+footer a {
+    color: rgb(193, 255, 252);
+}
